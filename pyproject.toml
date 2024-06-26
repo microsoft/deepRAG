@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "deepRAG"
+version = "0.1.0"
+description = "RAG enhanced though multiple search types."
+authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain = "^0.2.6"
+langserve = "^0.2.2"
+langgraph = "^0.1.1"
+networkx = "^3.3"
+guidance = "^0.1.15"
+prompty = "^1.0.20240318.90354"
+promptflow = "^1.12.0"
+langchain-openai = "^0.1.10"
+langchain-community = "^0.2.6"
+
+[tool.poetry.group.dev.dependencies]
+env = "^0.1.0"
+langchain-cli = "^0.0.25"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
