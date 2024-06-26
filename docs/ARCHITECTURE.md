@@ -25,7 +25,7 @@ graph TD
 
 ```
 
-## Applciation Architecture
+## Application Architecture
 
 ```mermaid
 sequenceDiagram
@@ -104,7 +104,7 @@ sequenceDiagram
       deactivate db
       a->>a: Augment prompt with graph response
     end
-    a-->>ai: submit graphRAG enhanced user prompt to LLM
+    a->>ai: submit graphRAG enhanced user prompt to LLM
     activate ai
     ai-->>a: return response to user prompt
     deactivate ai
