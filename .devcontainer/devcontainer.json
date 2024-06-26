@@ -9,8 +9,12 @@
 				"DavidAnson.vscode-markdownlint",
 				"EditorConfig.EditorConfig",
 				"ms-azuretools.vscode-bicep",
-				"ms-dotnettools.dotnet-interactive-vscode"
+				"ms-dotnettools.dotnet-interactive-vscode",
+				"ms-vscode.PowerShell"
 			]
 		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/powershell:1": {}
 	}
 }
