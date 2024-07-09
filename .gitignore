@@ -6,6 +6,7 @@
 # Project files
 dist/
 .venv/
+.env
 
 # User-specific files
 *.rsuser
