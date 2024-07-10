@@ -8,7 +8,7 @@
             "name": "Python Debugger: Server",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/server/_server.py",
+            "program": "src/server/__main__.py",
             "console": "integratedTerminal"
         }
     ]
