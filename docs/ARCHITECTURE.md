@@ -15,8 +15,8 @@ graph TD
   end
 
   subgraph Agents
-    rag[Classic RAG Agent]
-    graphRag[Enhanced Graph RAG Agent]
+    rag[Vector RAG Agent]
+    graphRag[Graph RAG Agent]
   end
 
   rag --> search --> storage --> app --> AOAI
@@ -39,7 +39,7 @@ sequenceDiagram
   participant graphDb as Azure Cosmos Db
 
   user ->> app: prompt for information
-  app ->> +rag: invoke rag agent to enhance prompt
+  app ->> +rag: invoke vector rag agent to enhance prompt
   rag ->> search: grab vectorized content through semantic search.
   search ->> storage: search through indexed content on storage
   storage-->>search: return relevant indexed documents
@@ -69,47 +69,66 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     actor u as User
-    participant a as Agent
+    participant vRAG as Vector Agent
+    participant gRAG as Graph Agent
     participant ai as LLM
-    participant db as Graph Database
+    participant gDB as Graph Database
+    participant vDB as Vector Database
 
-    activate a
-    a->>db: query graph ontology
-    activate db
-    db-->>a: return nodes and edges
-    deactivate db
-    a->>a: Serialize ontology as rdf.
-    a->>a: Populate system prompt with serialized ontology
-    activate u
-    u->>a: Provide initial user prompt
+    activate gRAG
+    gRAG->>gDB: query graph ontology
+    activate gDB
+    gDB-->>gRAG: return nodes and edges
+    deactivate gDB
+    gRAG->>gRAG: Serialize ontology as rdf.
+    gRAG->>gRAG: Populate system prompt with serialized ontology
+    deactivate gRAG
     critical Get user intent
-      a->>ai: Identify user intent from user prompt
+      activate u
+      activate vRAG
+      u->>vRAG: Provide initial user prompt
+      vRAG->>ai: Identify user intent from user prompt
       activate ai
-      ai-->>a: Return intent as goal
+      ai-->>vRAG: Return intent as goal
       deactivate ai
-    option Plan
-      a->>ai: Break down prompt into execution plan for goal
-      activate ai
-      ai-->>a: Return execution plan
-      deactivate ai
+      deactivate vRAG
+    option Gather initial documents
+      activate vRAG
+      vRAG->>vDB: Search k top results
+      vDB-->>vRAG: Return k top results
+      vRAG->>vRAG: Enhance prompt with results
+      deactivate vRAG
     option Generate graph query
-      a->>ai: Generate graph query based on execution plan
+      activate gRAG
+      gRAG->>ai: Generate graph query based on k documents from vRAG and ontology.
       activate ai
-      ai-->>a: return graph query for target language.
+      ai-->>gRAG: return graph query for target language.
       deactivate ai
+      deactivate gRAG
     option Execute graph
-      a->>db: Execute graph query
-      activate db
-      db-->>a: Return graph query results
-      deactivate db
-      a->>a: Augment prompt with graph response
+      activate gRAG
+      gRAG->>gDB: Execute graph query
+      activate gDB
+      gDB-->>gRAG: Return graph query results
+      deactivate gDB
+      gRAG->>gRAG: store graph response
+      deactivate gRAG
+    option Generate additional prompts
+      activate vRAG
+      vRAG->>ai: Use results of graph query to create n number of related prompts.
+      ai-->>vRAG: return a question for each related node in graph query results.
+      vRAG->>vDB: search top k results for each generated prompt.
+      vDB-->>vRAG: return top k related documents.
+      vRAG->>vRAG: enhance prompt with vRAG results.
+      deactivate vRAG
     end
-    a->>ai: submit graphRAG enhanced user prompt to LLM
+    activate vRAG
+    vRAG->>ai: submit enhanced user prompt to LLM
     activate ai
-    ai-->>a: return response to user prompt
+    ai-->>vRAG: return response to user prompt
     deactivate ai
-    a-->>u: return response to user    
-    deactivate a
+    vRAG-->>u: return response to user    
     deactivate u
+    deactivate vRAG
     
 ```
