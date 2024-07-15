@@ -271,6 +271,26 @@ azure-core = ">=1.28.0,<2.0.0"
 isodate = ">=0.6.0"
 
 [[package]]
+name = "azure-storage-blob"
+version = "12.20.0"
+description = "Microsoft Azure Blob Storage Client Library for Python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "azure-storage-blob-12.20.0.tar.gz", hash = "sha256:eeb91256e41d4b5b9bad6a87fd0a8ade07dd58aa52344e2c8d2746e27a017d3b"},
+    {file = "azure_storage_blob-12.20.0-py3-none-any.whl", hash = "sha256:de6b3bf3a90e9341a6bcb96a2ebe981dffff993e9045818f6549afea827a52a9"},
+]
+
+[package.dependencies]
+azure-core = ">=1.28.0"
+cryptography = ">=2.1.4"
+isodate = ">=0.6.1"
+typing-extensions = ">=4.6.0"
+
+[package.extras]
+aio = ["azure-core[aio] (>=1.28.0)"]
+
+[[package]]
 name = "blinker"
 version = "1.8.2"
 description = "Fast, simple object-to-object and broadcast signaling"
@@ -2360,17 +2380,6 @@ opentelemetry-sdk = ">=1.22.0,<2.0.0"
 tiktoken = ">=0.4.0"
 
 [[package]]
-name = "prompty"
-version = "1.0.20240318.90354"
-description = ""
-optional = false
-python-versions = ">=3.11,<4.0"
-files = [
-    {file = "prompty-1.0.20240318.90354-py3-none-any.whl", hash = "sha256:060c5847ef81bf0b9c48f2c2b987ed58bc4372dc626e446b7f9ba35f6403f315"},
-    {file = "prompty-1.0.20240318.90354.tar.gz", hash = "sha256:04b51a405b77077c822f4c6141adfe22b4fe3ada99c711efc25de5b6abfb972b"},
-]
-
-[[package]]
 name = "protobuf"
 version = "4.25.3"
 description = ""
@@ -3822,4 +3831,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "58b90d0b861be3328d4350ed216582f695e3cdff6bccd63351e3a30858cf0fea"
+content-hash = "c2139bbbe8dc0c706a53f8bad800425df94de29789267ee0ed7081ed2bdfe6dc"
