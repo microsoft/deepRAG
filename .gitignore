@@ -5,8 +5,10 @@
 
 # Project files
 dist/
+.pytest_cache/
 .venv/
 .env
+
 
 # User-specific files
 *.rsuser

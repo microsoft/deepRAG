@@ -5,8 +5,8 @@ from langchain_openai import ChatOpenAI
 from langserve import add_routes
 from langchain_core.stores import InMemoryByteStore
 
-from ..runnables.graph_retrieval import graph_retriever
-from ..runnables.vector_retrieval import vector_retriever
+from runnables.graph_retrieval.graph_retriever import Retriever as graph_retriever
+from runnables.vector_retrieval.vector_retriever import Retriever as vector_retriever
 
 app = FastAPI(
     title="LangChain Server",

@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from langchain_community.graphs.networkx_graph import NetworkxEntityGraph
-from cypher_generation.generate_cypher import generate_cypher
+from runnables.cypher_generation.generate_cypher import generate_cypher
 from langchain_core import chain
 from langchain.indexes import GraphIndexCreator
 from langchain.chains.graph_qa.base import GraphQAChain
