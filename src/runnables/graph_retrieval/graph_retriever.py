@@ -1,10 +1,10 @@
 from typing import Any, Dict
 from langchain_community.graphs.networkx_graph import NetworkxEntityGraph
 from runnables.cypher_generation.generate_cypher import generate_cypher
-from langchain_core import chain
-from langchain.indexes import GraphIndexCreator
-from langchain.chains.graph_qa.base import GraphQAChain
-from langchain.base_language import BaseLanguageModel
+from langchain_core.runnables.base import chain
+from langchain_community.graphs.index_creator import GraphIndexCreator
+from langchain_community.chains.graph_qa.base import GraphQAChain
+from langchain_core.language_models import BaseLanguageModel
 
 class Retriever:
     def __init__(self, index_creator: GraphIndexCreator, llm: BaseLanguageModel | None, ontology) -> None:

@@ -7,6 +7,8 @@ from langchain_core.stores import InMemoryByteStore
 
 from runnables.graph_retrieval.graph_retriever import Retriever as graph_retriever
 from runnables.vector_retrieval.vector_retriever import Retriever as vector_retriever
+from langchain_community.vectorstores.azuresearch import AzureSearch
+from langchain_community.graphs.index_creator import GraphIndexCreator
 
 app = FastAPI(
     title="LangChain Server",
@@ -14,20 +16,21 @@ app = FastAPI(
     description="A simple api server using Langchain's Runnable interfaces",
 )
 
-azureSearch = vector_retriever.AzureSearch(
+azureSearch = AzureSearch(
     azure_search_endpoint="https://langchain.search.windows.net/",
     azure_search_key="",
     index_name="azureblob-index",
+    embedding_function="use",
 )
 vectorRAG: Runnable = ChatOpenAI(model="gpt-3.5-turbo-0125") \
-    | vector_retriever.Retriever(
+    | vector_retriever(
         vector_store=azureSearch,
         store=InMemoryByteStore(),
         id_key="",
     )
 graphRAG: Runnable = ChatOpenAI(model="gtp-4o") \
-    | graph_retriever.Retriever(
-        index_creator=graph_retriever.GraphIndexCreator(),
+    | graph_retriever(
+        index_creator=GraphIndexCreator(),
         llm=ChatOpenAI("gpt-4o"),
         ontology="The quick brown fox jumps over the lazy dog",
     )

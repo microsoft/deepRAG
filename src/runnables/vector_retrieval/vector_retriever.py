@@ -1,5 +1,5 @@
 from typing import List
-from langchain_core import chain
+from langchain_core.runnables.base import chain
 from langchain_core.stores import BaseStore
 from langchain_core.documents import Document
 from langchain_community.vectorstores.azuresearch import AzureSearch
