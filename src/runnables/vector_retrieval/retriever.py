@@ -4,6 +4,7 @@ from langchain_core.stores import BaseStore
 from langchain_core.documents import Document
 from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain.retrievers.multi_vector import MultiVectorRetriever
+from langchain_core.runnables.config import RunnableConfig
 
 class Retriever:
     def __init__(self, vector_store: AzureSearch, store: BaseStore[str, Document], id_key) -> None:
@@ -14,5 +15,5 @@ class Retriever:
         )
 
     @chain    
-    def retrieve(self, context) -> List[Document]:
-        return self.retriever.invoke(input=context)
+    def retrieve(self, input: str, config: RunnableConfig) -> List[Document]:
+        return self.retriever.invoke(input=input, config=config)

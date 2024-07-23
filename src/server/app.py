@@ -6,7 +6,7 @@ from langserve import add_routes
 from langchain_core.stores import InMemoryByteStore
 
 from runnables.graph_retrieval.graph_retriever import Retriever as graph_retriever
-from runnables.vector_retrieval.vector_retriever import Retriever as vector_retriever
+from runnables.vector_retrieval.retriever import Retriever as vector_retriever
 from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain_community.graphs.index_creator import GraphIndexCreator
 
