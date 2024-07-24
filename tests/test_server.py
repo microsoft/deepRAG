@@ -1,5 +1,5 @@
 from langserve.client import RemoteRunnable
-from server.app import app
+from server.server import app
 
 def test_server_response() -> None:
     import uvicorn

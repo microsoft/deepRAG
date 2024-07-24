@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = "RAG enhanced though multiple search types."
+authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.36.0"
+streamlit-extras = "^0.4.3"
+utils = { path = "../utils/utilities.py" }
+
+[tool.poetry.group.dev.dependencies]
+env = "^0.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

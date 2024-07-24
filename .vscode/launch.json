@@ -8,8 +8,17 @@
             "name": "Python Debugger: Server",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/server/__main__.py",
-            "console": "integratedTerminal"
+            "module": "streamlit",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "args": [
+                "run",
+                "${cwd}/src/app/app.py",
+                "--server.port",
+                "8000"
+            ]
         }
     ]
 }
