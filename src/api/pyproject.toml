@@ -1,23 +1,16 @@
 [tool.poetry]
-name = "deepRAG"
+name = "api"
 version = "0.1.0"
 description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
-package-mode = false
-packages = [
-    { include = "src", from = "." },
-]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 langchain = "^0.2.6"
 langserve = "^0.2.2"
-langgraph = "^0.1.1"
 networkx = "^3.3"
-guidance = "^0.1.15"
-promptflow = "^1.12.0"
 langchain-openai = "^0.1.10"
 langchain-community = "^0.2.6"
 uvicorn = "^0.23.2"
@@ -27,21 +20,6 @@ azure-storage-blob = "^12.20.0"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
-langchain-cli = "^0.0.25"
-pytest = "^8.2.2"
-
-[tool.pytest.ini_options]
-minversion = "8.0"
-addopts = [
-    "--import-mode=importlib",
-]
-testpaths = [
-    "tests",
-]
-pythonpath = [
-    ".",
-    "src",
-]
 
 [build-system]
 requires = ["poetry-core"]

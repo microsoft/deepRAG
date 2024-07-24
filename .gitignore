@@ -8,6 +8,7 @@ dist/
 .pytest_cache/
 .venv/
 .env
+processed_data/
 
 
 # User-specific files
