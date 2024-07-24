@@ -1,0 +1,22 @@
+{
+    "python.globalModuleInstallation": true,
+    "python.languageServer": "Pylance",
+    "python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/deeprag-rOEgdld2-py3.11/bin/python",
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.extraPaths": [
+        "~/.cache/pypoetry/virtualenvs/deeprag-rOEgdld2-py3.11/bin"
+    ],
+    "python.analysis.inlayHints.callArgumentNames": "all",
+    "python.analysis.inlayHints.variableTypes": true,
+    "python.analysis.inlayHints.pytestParameters": true,
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./src/tests",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true
+}

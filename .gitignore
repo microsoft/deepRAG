@@ -3,6 +3,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Project files
+dist/
+.pytest_cache/
+.venv/
+.env
+
+
 # User-specific files
 *.rsuser
 *.suo
