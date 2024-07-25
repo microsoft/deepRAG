@@ -1,16 +1,68 @@
-import streamlit as st
-from streamlit_extras.add_vertical_space import add_vertical_space
-
-from utils.utilities import PERSONA, AVAILABLE_FUNCTIONS, FUNCTIONS_SPEC, Smart_Agent
 import sys
-sys.path.append("..")
+import streamlit as st
 import os
 import json
+import logging
+import pandas as pd
+import yaml
+from typing import Any
+from openai import AzureOpenAI
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
-import pandas as pd
+from functions.search_vector_function import SearchVectorFunction
+from agents.smart_agent.smart_agent import Smart_Agent
+from agents.agent_configuration import AgentConfiguration
+
+sys.path.append("..")
+
 # Initialize smart agent with CODER1 persona
-agent = Smart_Agent(persona=PERSONA,functions_list=AVAILABLE_FUNCTIONS, functions_spec=FUNCTIONS_SPEC, init_message="Hello, I am your AI Marketing Research Assistant, what can I do for you？")
+with open(file=os.environ.get("SMART_AGENT_PROMPT_LOCATION"), mode="r", encoding="utf-8") as file:
+        agent_config_data = yaml.safe_load(stream=file)
+        agent_config = AgentConfiguration(
+            persona=agent_config_data["persona"],
+            model=agent_config_data["model"],
+            initial_message=agent_config_data["initial_message"],
+            name=agent_config_data["name"]
+        )
+
+search_client = SearchClient(
+    endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
+    index_name=os.environ.get("AZURE_SEARCH_INDEX_NAME"),
+    credential=AzureKeyCredential(key=os.environ.get("AZURE_SEARCH_KEY"))
+)
+
+client = AzureOpenAI(
+    api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
+    api_version=os.environ.get("AZURE_OPENAI_API_VERSION"),
+    azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+)
+
+search_vector_function = SearchVectorFunction(
+        logger=logging,
+        search_client=search_client,
+        client=client,
+        model=os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")
+)
+
+AVAILABLE_FUNCTIONS: dict[str, Any] = {
+    "search": search_vector_function.search
+}
+
+FUNCTIONS_SPEC: Any = [
+    search_vector_function.search_function_spec
+]
+
+agent = Smart_Agent(
+    logger=logging,
+    client=client,
+    agent_configuration=agent_config,
+    functions_list=AVAILABLE_FUNCTIONS,
+    functions_spec=FUNCTIONS_SPEC
+)
+
 st.set_page_config(layout="wide",page_title="Smart Research Copilot Demo Application using LLM")
 styl = f"""
 <style>
@@ -165,7 +217,7 @@ if user_input:
             if json_response:
                 for item in json_response:
                     if item !="overall_explanation":
-                        image_path = os.path.join("../processed_data", item)
+                        image_path = os.path.join(".\\processed_data", item)
                         st.markdown(json_response[item])
                         st.image(image_path)
 

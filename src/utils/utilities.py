@@ -257,7 +257,7 @@ def search(search_query):
         select=["topic", "file_name", "page_number", "related_content"],
         top=3
     )
-    images_directory = "../processed_data"
+    images_directory = ".\\processed_data"
     output = []
     for result in results:
         print(f"topic: {result['topic']}")
