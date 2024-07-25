@@ -16,27 +16,6 @@ class SearchVectorFunction:
         self.__search_client: SearchClient = search_client
         self.__client: AzureOpenAI = client
         self.__model = model
-        self.search_function_spec: Any ={
-            "type": "function",
-            "function": {
-
-                "name": "search",
-                "description": "Semantic Search Engine to search for content",
-
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "search_query": {
-                            "type": "string",
-                            "description": "Natural language query to search for content"
-                        }
-
-
-                    },
-                    "required": ["search_query"],
-                },
-            }
-        }
 
     def search(self, search_query):
         self.__logger.debug("search query: ", search_query)
