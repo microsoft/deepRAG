@@ -161,3 +161,16 @@ persona: |
       
       - Slogan:  
           - used_by_brand: Brand
+tools:
+    - name: "search"
+      description: "Semantic Search Engine to search for content"
+      type: "function"
+      parameters:
+        type: "object"
+        properties:
+        - search_query: 
+            type: "string"
+            description: "Natural language query to search for content"                
+      required: 
+        - "search_query"
+                
