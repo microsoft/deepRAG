@@ -29,6 +29,7 @@ azure-storage-blob = "^12.20.0"
 env = "^0.1.0"
 langchain-cli = "^0.0.25"
 pytest = "^8.2.2"
+pydantic_settings = "^2.8.2"
 
 [tool.pytest.ini_options]
 minversion = "8.0"

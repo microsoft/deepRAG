@@ -10,7 +10,6 @@ readme = "README.md"
 python = "^3.11"
 streamlit = "^1.36.0"
 streamlit-extras = "^0.4.3"
-utils = { path = "../utils/utilities.py" }
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

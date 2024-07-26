@@ -1,6 +1,6 @@
 import logging
 from abc import abstractmethod
-from agents.agent_configuration import AgentConfiguration
+from models.agent_configuration import AgentConfiguration
 
 class Agent():
     """Base class for agents"""
