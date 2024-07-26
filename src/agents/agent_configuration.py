@@ -2,27 +2,30 @@ from dataclasses import dataclass
 
 @dataclass
 class Parameter():
+    """Parameter class to represent the parameters of a tool"""
     type: str
     properties: dict
 
     @staticmethod
     def from_dict(data: dict) -> "Parameter":
+        """Converts a dictionary to a Parameter object"""
         return Parameter(
             type=data["type"],
             properties=data["properties"]
         )
-    
-    def to_dict(self) -> dict:
 
+    def to_dict(self) -> dict:
+        """Converts a Parameter object to a dictionary"""
         return {
             "type": self.type,
             "properties": {
                 property_key: tool_property for property in self.properties for property_key, tool_property in property.items()
             }
         }
-    
+
 @dataclass
 class Tool():
+    """Tool class to represent the tools that the agent can use"""
     name: str
     description: str
     type: str
@@ -31,6 +34,7 @@ class Tool():
 
     @staticmethod
     def from_dict(data: dict) -> "Tool":
+        """Converts a dictionary to a Tool object"""
         return Tool(
             name=data["name"],
             description=data["description"],
@@ -38,8 +42,9 @@ class Tool():
             parameters=Parameter.from_dict(data=data["parameters"]),
             required=data["required"]
         )
-    
+
     def to_openai_tool(self) -> dict:
+        """Converts a Tool object to a dictionary that matches the openai format"""
         return {
             "type": self.type,
             "function": {
@@ -52,6 +57,7 @@ class Tool():
 
 @dataclass
 class AgentConfiguration():
+    """AgentConfiguration class to represent the configuration of the agent"""
     persona: str
     model: str
     initial_message: str
@@ -60,6 +66,7 @@ class AgentConfiguration():
 
     @staticmethod
     def from_dict(data: dict) -> "AgentConfiguration":
+        """Converts a dictionary to an AgentConfiguration object"""
         return AgentConfiguration(
             persona=data["persona"],
             model=data["model"],
@@ -67,8 +74,9 @@ class AgentConfiguration():
             name=data["name"],
             tools=[Tool.from_dict(data=tool) for tool in data["tools"]]
         )
-    
+
 def agent_configuration_from_dict(data: dict) -> AgentConfiguration:
+    """Converts a dictionary to an AgentConfiguration object"""
     return AgentConfiguration(
         persona=data["persona"],
         model=data["model"],
@@ -76,4 +84,3 @@ def agent_configuration_from_dict(data: dict) -> AgentConfiguration:
         name=data["name"],
         tools=[Tool.from_dict(data=tool) for tool in data["tools"]]
     )
-
