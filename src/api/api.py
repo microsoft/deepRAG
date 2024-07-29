@@ -2,6 +2,8 @@
 from fastapi import FastAPI
 from langserve import add_routes
 from langchain_community.vectorstores.azuresearch import AzureSearch
+from langchain_core.embeddings import FakeEmbeddings
+from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 
 app = FastAPI(
     title="LangChain Server",
@@ -9,11 +11,8 @@ app = FastAPI(
     description="A simple api server using Langchain's Runnable interfaces",
 )
 
-azureSearch = AzureSearch(
-    azure_search_endpoint="https://langchain.search.windows.net/",
-    azure_search_key="",
-    index_name="azureblob-index",
-    embedding_function="use",
+azureSearch = InMemoryVectorStore(
+    embedding=FakeEmbeddings(size=1568),
 )
 
 add_routes(
