@@ -1,10 +1,10 @@
 {
     "python.globalModuleInstallation": true,
     "python.languageServer": "Pylance",
-    "python.defaultInterpreterPath": "/workspaces/deepRAG/.venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python.exe",
     "python.analysis.completeFunctionParens": true,
     "python.analysis.extraPaths": [
-        "/workspaces/deepRAG/.venv/bin/python"
+        "${workspaceFolder}/bin/python"
     ],
     "python.analysis.inlayHints.callArgumentNames": "all",
     "python.analysis.inlayHints.variableTypes": true,
@@ -13,10 +13,10 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.autoComplete.extraPaths": [
-        "/workspaces/deepRAG/.venv/bin/python"
+        "${workspaceFolder}/.venv/bin",
     ],
     "python.testing.pytestArgs": [
-        "./tests"
+        "${workspaceFolder}/tests"
     ],
     "python.analysis.typeCheckingMode": "standard"
 }

@@ -5,7 +5,7 @@
 			"version": "3.11"
 		}
 	},
-	"initializeCommand": "pip install -U langchain-cli && pip install poetry && poetry config virtualenvs.in-project true && poetry install -C src/server",
+	"initializeCommand": "pip install poetry && poetry config virtualenvs.in-project true && poetry install",
 	"customizations": {
 		"vscode": {
 			"extensions": [
