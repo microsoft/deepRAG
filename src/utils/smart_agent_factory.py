@@ -1,6 +1,7 @@
-import logging
 import redis
 import yaml
+import fsspec
+from logging import Logger
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
@@ -10,6 +11,7 @@ from models.agent_configuration import AgentConfiguration, agent_configuration_f
 from models.settings import Settings
 from services.history import History
 from agents.smart_agent.smart_agent import Smart_Agent
+from fsspec.implementations.local import LocalFileSystem
 
 class SmartAgentFactory:
     @staticmethod
@@ -31,7 +33,7 @@ class SmartAgentFactory:
         )
 
         search_vector_function = SearchVectorFunction(
-                logger=logging,
+                logger=Logger(name="search_vector_function"),
                 search_client=search_client,
                 client=client,
                 model=settings.openai_embedding_deployment,
@@ -47,11 +49,13 @@ class SmartAgentFactory:
                 decode_responses=True
         )
 
+        fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
         history: History = History(session_id=session_id, cache=redis_client)
         return Smart_Agent(
-            logger=logging,
+            logger=Logger(name="smart_agent"),
             client=client,
             agent_configuration=agent_config,
             search_vector_function = search_vector_function,
-            history = history
+            history = history,
+            fs=LocalFileSystem(),
         )

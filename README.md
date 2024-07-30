@@ -1,8 +1,16 @@
 # Project
+
 The deepRAG project seeks to extend classic retrieval using vector databases to optional utilize other search technologies for extended results.
 This will initially be done by utilizing graph databases to help answer queries related to content summaries that aren't directly related to snippets of content.
 
 The architecture of this project is located in [ARCHITECTURE.MD](./docs/ARCHITECTURE.md).
+
+## Running the project
+
+Run the following command.
+```poetry install```
+
+Then, select the interpreter in the poetry cache.
 
 ## Contributing
 
