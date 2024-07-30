@@ -1,20 +1,19 @@
 [tool.poetry]
-name = "app"
+name = "agent"
 version = "0.1.0"
 description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [
+    { include = "smart_agent", from = "." }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-streamlit = "^1.36.0"
-streamlit-extras = "^0.4.3"
-azure-storage-blob = "^12.21.0"
-azure-identity = "^1.17.1"
-azure-search-documents = "^11.5.1"
 pydantic-settings = "^2.4.0"
-plotly = "^5.23.0"
+openai = "^1.37.1"
+fsspec = "^2024.6.1"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
