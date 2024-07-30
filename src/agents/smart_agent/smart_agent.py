@@ -9,7 +9,7 @@ from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from agents.agent import Agent
-from agents.agent_configuration import AgentConfiguration
+from models.agent_configuration import AgentConfiguration
 from functions.search_vector_function import SearchVectorFunction
 
 class Smart_Agent(Agent):
