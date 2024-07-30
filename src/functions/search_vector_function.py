@@ -1,5 +1,5 @@
 import os
-import logging
+from logging import Logger
 from typing import (Any, List, Dict)
 from openai import AzureOpenAI
 from azure.search.documents import (SearchItemPaged, SearchClient)
@@ -14,13 +14,13 @@ class SearchVectorFunction:
     """Search function that uses a vector database to search for related content"""
     def __init__(
             self,
-            logger:logging,
+            logger: Logger,
             search_client:SearchClient,
             client:AzureOpenAI,
             model: str,
             image_directory: str
-        ):
-        self.__logger: Any = logger
+        ) -> None:
+        self.__logger: Logger = logger
         self.__search_client: SearchClient = search_client
         self.__client: AzureOpenAI = client
         self.__model: str = model

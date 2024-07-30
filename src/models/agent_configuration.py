@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+from typing import Any, Literal
+from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from openai.types.shared_params import FunctionDefinition
 
 @dataclass
 class Parameter():
@@ -28,7 +31,7 @@ class Tool():
     """Tool class to represent the tools that the agent can use"""
     name: str
     description: str
-    type: str
+    type: Literal["function"]
     parameters: Parameter
     required: list[str]
 
@@ -43,17 +46,17 @@ class Tool():
             required=data["required"]
         )
 
-    def to_openai_tool(self) -> dict:
+    def to_openai_tool(self) -> ChatCompletionToolParam:
         """Converts a Tool object to a dictionary that matches the openai format"""
-        return {
-            "type": self.type,
-            "function": {
-                "name": self.name,
-                "description": self.description,
-                "required": self.required,
-                "parameters": self.parameters.to_dict()
-            }
-        }
+        return ChatCompletionToolParam(
+            type=self.type,
+            function=FunctionDefinition(
+                name=self.name,
+                description=self.description,
+                #required=self.required,
+                parameters=self.parameters.to_dict(),
+            )
+        )
 
 @dataclass
 class AgentConfiguration():

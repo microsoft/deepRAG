@@ -9,6 +9,7 @@ dist/
 .venv/
 .env
 processed_data/
+poetry.lock
 
 
 # User-specific files
