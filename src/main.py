@@ -1,40 +1,39 @@
-import os
 import logging
 import yaml
-from typing import Any
 from pathlib import Path
-from dotenv import load_dotenv
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from agents.agent_configuration import AgentConfiguration, agent_configuration_from_dict
+from models.agent_configuration import AgentConfiguration, agent_configuration_from_dict
 from functions.search_vector_function import SearchVectorFunction
 from agents.smart_agent.smart_agent import Smart_Agent
+from models.settings import Settings
 
 env_path = Path('..') / '.env'
-load_dotenv(dotenv_path=env_path)
+settings: Settings = Settings(_env_file=env_path)
 
-with open(file=os.environ.get("SMART_AGENT_PROMPT_LOCATION"), mode="r", encoding="utf-8") as file:
+with open(file=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
         agent_config_data = yaml.safe_load(stream=file)
         agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
 
 search_client = SearchClient(
-    endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
-    index_name=os.environ.get("AZURE_SEARCH_INDEX_NAME"),
-    credential=AzureKeyCredential(key=os.environ.get("AZURE_SEARCH_KEY"))
+    endpoint=settings.azure_search_endpoint,
+    index_name=settings.azure_search_index_name,
+    credential=AzureKeyCredential(key=settings.azure_search_key)
 )
 
 client = AzureOpenAI(
-    api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
-    api_version=os.environ.get("AZURE_OPENAI_API_VERSION"),
-    azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+    api_key=settings.openai_key,
+    api_version=settings.openai_api_version,
+    azure_endpoint=settings.openai_endpoint,
 )
 
 search_vector_function = SearchVectorFunction(
         logger=logging,
         search_client=search_client,
         client=client,
-        model=os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")
+        model=settings.openai_embedding_deployment,
+        image_directory=settings.smart_agent_image_path
 )
 
 agent = Smart_Agent(
