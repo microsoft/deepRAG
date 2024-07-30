@@ -24,12 +24,13 @@ uvicorn = "^0.23.2"
 azure-search-documents = "^11.4.0"
 azure-identity = "^1.17.1"
 azure-storage-blob = "^12.20.0"
+pydantic_settings = "^2.3.4"
+redis = "^5.0.7"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
 langchain-cli = "^0.0.25"
 pytest = "^8.2.2"
-pydantic_settings = "^2.8.2"
 
 [tool.pytest.ini_options]
 minversion = "8.0"

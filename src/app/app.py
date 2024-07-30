@@ -1,53 +1,20 @@
 import streamlit as st
 import os
 import json
-import logging
+import uuid
 import pandas as pd
-import yaml
-from openai import AzureOpenAI
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
-from functions.search_vector_function import SearchVectorFunction
-from agents.smart_agent.smart_agent import Smart_Agent
-from models.agent_configuration import AgentConfiguration, agent_configuration_from_dict
+from agents.smart_agent.smart_agent import AgentResponse
 from models.settings import Settings
+from models.agent_response import AgentResponse
+from utils.smart_agent_factory import SmartAgentFactory
 
 # Initialize smart agent with CODER1 persona
 settings: Settings = Settings()
-
-with open(file=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
-        agent_config_data = yaml.safe_load(stream=file)
-        agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
-
-search_client = SearchClient(
-    endpoint=settings.azure_search_endpoint,
-    index_name=settings.azure_search_index_name,
-    credential=AzureKeyCredential(key=settings.azure_search_key)
-)
-
-client = AzureOpenAI(
-    api_key=settings.openai_key,
-    api_version=settings.openai_api_version,
-    azure_endpoint=settings.openai_endpoint,
-)
-
-search_vector_function = SearchVectorFunction(
-        logger=logging,
-        search_client=search_client,
-        client=client,
-        model=settings.openai_embedding_deployment,
-        image_directory=settings.smart_agent_image_path
-)
-
-agent = Smart_Agent(
-    logger=logging,
-    client=client,
-    agent_configuration=agent_config,
-    search_vector_function = search_vector_function
-)
+session_id = str(uuid.uuid4())
+agent = SmartAgentFactory.create_smart_agent(settings=settings, session_id=session_id)
 
 st.set_page_config(layout="wide",page_title="Smart Research Copilot Demo Application using LLM")
 styl = f"""
@@ -167,7 +134,10 @@ if len(history) > 0:
 
 
 else:
-    history, agent_response = agent.run(user_input=None)
+    smart_agent_message: AgentResponse = agent.run(user_input=None)
+    history = smart_agent_message.history
+    agent_response = smart_agent_message.response
+
     with st.chat_message("assistant"):
         st.markdown(agent_response)
     user_history=[]
@@ -179,7 +149,12 @@ if user_input:
         st.markdown(user_input)
         try:
             # stream_out= False
-            stream_out, code, history, agent_response,data = agent.run(user_input=user_input, conversation=history, stream=False)
+            smart_agent_message = agent.run(user_input=user_input, conversation=history, stream=False)
+            stream_out = smart_agent_message.stream
+            code = smart_agent_message.code
+            history = smart_agent_message.history
+            agent_response = smart_agent_message.response
+            data = smart_agent_message.data
         except Exception as e:
             agent_response= None
             print("error in running agent, error is ", e)

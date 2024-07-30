@@ -3,14 +3,16 @@ import inspect
 import json
 import logging
 from types import MappingProxyType
-from typing import List
+from typing import List, Literal
 from openai import AzureOpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from agents.agent import Agent
 from models.agent_configuration import AgentConfiguration
+from models.agent_response import AgentResponse
 from functions.search_vector_function import SearchVectorFunction
+from services.history import History
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
@@ -20,34 +22,53 @@ class Smart_Agent(Agent):
             agent_configuration: AgentConfiguration,
             client: AzureOpenAI,
             search_vector_function: SearchVectorFunction,
+            history: History,
             max_error_run:int = 3,
-            max_run_per_question:int = 10
+            max_run_per_question:int = 10,
+            max_question_to_keep:int = 3,
+            max_question_with_detail_hist:int = 1
     ):
         super().__init__(logger=logger, agent_configuration=agent_configuration)
         
         self.__client = client
         self.__max_error_run = max_error_run
         self.__max_run_per_question = max_run_per_question
+        self.__max_question_to_keep = max_question_to_keep
+        self.__max_question_with_detail_hist = max_question_with_detail_hist
         self.__functions_spec = [tool.to_openai_tool() for tool in self._agent_configuration.tools]
+        self.__history: History = history
         self._functions_list = {
             "search": search_vector_function.search
         }
 
-    def run(self, user_input, conversation=None, stream=False, ):
-        if user_input is None:  # if no input return init message
-            return self._conversation, self._conversation[1]["content"]
+    def run(self, user_input, conversation=None, stream=False) -> AgentResponse:
+        if user_input is None:
+            return AgentResponse(stream=stream, code='', history=self._conversation, response=self._conversation[1]["content"], data={})
         
-        if conversation is not None:  # if no history return init message
+        if conversation is not None:
             self._conversation = conversation
 
         execution_error_count = 0
-        code = ""
+        code: str = ""
         response_message = None
         data = {}
         run_count = 0
+
         self._conversation.append({"role": "user", "content": user_input})
+        self.__history.clean_up_history(max_q_with_detail_hist=self.__max_question_with_detail_hist, max_q_to_keep=self.__max_question_to_keep)
 
         while True:
+            if run_count >= self.__max_run_per_question:
+                self.__history.reset_history_to_last_question(self.conversation)
+                self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
+                response_message= {"role": "assistant", "content": "I am unable to answer this question at the moment, please ask another question."}
+                break
+
+            if execution_error_count >= self.__max_error_run:
+                self.__history.reset_history_to_last_question(self.conversation)
+                self._logger.debug(msg=f"resetting history due to too many errors ({execution_error_count} errors) in the code execution")
+                execution_error_count=0
+            
             if run_count >= self.__max_run_per_question:
                 self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
                 response_message = {
@@ -92,7 +113,9 @@ class Smart_Agent(Agent):
         else:
             assistant_response = response_message
 
-        return stream, code, self._conversation, assistant_response, data
+        self.__history.set_history(self._conversation)
+
+        return AgentResponse(stream=stream, code=code, history=self._conversation, response=assistant_response, data=data)
 
     def __check_args(self, function, args) -> bool:
         """Check if the function has the correct number of arguments"""
@@ -108,7 +131,7 @@ class Smart_Agent(Agent):
                 return False
 
         return True
-    
+
     def __verify_openai_tools(self, tool_calls: List[ChatCompletionMessageToolCall]):
         for tool_call in tool_calls:
             function_name = tool_call.function.name
