@@ -1,7 +1,7 @@
 import base64
 import inspect
 import json
-import logging
+from logging import Logger
 from types import MappingProxyType
 from typing import List
 from openai import AzureOpenAI
@@ -16,7 +16,7 @@ class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
     def __init__(
             self,
-            logger: logging,
+            logger: Logger,
             agent_configuration: AgentConfiguration,
             client: AzureOpenAI,
             search_vector_function: SearchVectorFunction,

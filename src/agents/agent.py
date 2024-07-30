@@ -1,14 +1,14 @@
-import logging
+from logging import Logger
 from abc import abstractmethod
 from models.agent_configuration import AgentConfiguration
 
 class Agent():
     """Base class for agents"""
     def __init__(self, 
-                 logger: logging, 
+                 logger: Logger, 
                  agent_configuration: AgentConfiguration
     ):
-        self._logger: logging = logger
+        self._logger: Logger = logger
         self._agent_configuration: AgentConfiguration = agent_configuration
         self._conversation:list = []
 

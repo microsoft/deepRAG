@@ -1,7 +1,8 @@
+from typing import LiteralString
 import streamlit as st
 import os
 import json
-import logging
+from logging import Logger
 import pandas as pd
 import yaml
 from openai import AzureOpenAI
@@ -14,13 +15,15 @@ from functions.search_vector_function import SearchVectorFunction
 from agents.smart_agent.smart_agent import Smart_Agent
 from models.agent_configuration import AgentConfiguration, agent_configuration_from_dict
 from models.settings import Settings
+import fsspec
 
 # Initialize smart agent with CODER1 persona
 settings: Settings = Settings()
 
-with open(file=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
-        agent_config_data = yaml.safe_load(stream=file)
-        agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
+fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
+with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
+    agent_config_data = yaml.safe_load(stream=file)
+    agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
 
 search_client = SearchClient(
     endpoint=settings.azure_search_endpoint,
@@ -35,7 +38,7 @@ client = AzureOpenAI(
 )
 
 search_vector_function = SearchVectorFunction(
-        logger=logging,
+        logger=Logger(name="search_vector_function"),
         search_client=search_client,
         client=client,
         model=settings.openai_embedding_deployment,
@@ -43,14 +46,14 @@ search_vector_function = SearchVectorFunction(
 )
 
 agent = Smart_Agent(
-    logger=logging,
+    logger=Logger(name="smart_agent"),
     client=client,
     agent_configuration=agent_config,
     search_vector_function = search_vector_function
 )
 
 st.set_page_config(layout="wide",page_title="Smart Research Copilot Demo Application using LLM")
-styl = f"""
+style: LiteralString = f"""
 <style>
     .stTextInput {{
       position: fixed;
@@ -58,7 +61,7 @@ styl = f"""
     }}
 </style>
 """
-st.markdown(styl, unsafe_allow_html=True)
+st.markdown(body=style, unsafe_allow_html=True)
 
 
 MAX_HIST= 3
@@ -78,18 +81,13 @@ with st.sidebar:
         if 'display_data' in st.session_state:
             st.session_state['display_data'] = {}
 
-
     st.markdown("""
-                
 ### Sample Questions:  
 1. Suggest alternative headlines inspired from 'hack it the way you like it' for a new coffee concentrate product launch in Australia targeting young people
 2. What is the slogan of NESCAFE?
 3. Three separate steps of preparing an iced latte using NESCAFE coffee concentrate
 4. Nescaf brand guidelines for creating TikTok content for Gen Z with a focus on natural and authentic imagery
 5. Nescaf brand guidelines for creating a storyboard for an iced latte coffee recipe focusing on innovation
-                
-
-
           """)
     st.write('')
     st.write('')
@@ -113,8 +111,6 @@ user_input= st.chat_input("You:")
 history = st.session_state['history']
 display_data = st.session_state['display_data']
 question_count=st.session_state['question_count']
-# print("new round-----------------------------------")
-# print("question_count: ", question_count)
 
 if len(history) > 0:
     #purging history
@@ -135,21 +131,14 @@ if len(history) > 0:
             break
             
     # remove items with indices in removal_indices
-    # print("removal_indices", removal_indices)
     for index in removal_indices:
         del history[index]
     question_count=0
-    # print("done purging history, len history now", len(history ))
     for message in history:
         message = dict(message)
-        # if message.get("role") != "system":
-        #     print("message: ", message)
-        # else:
-        #     print("system message here, omitted")
 
         if message.get("role") == "user":
-            question_count +=1
-            # print("question_count added, it becomes: ", question_count)   
+            question_count +=1 
         if message.get("role") != "system" and message.get("role") != "tool" and message.get("name") is None and len(message.get("content")) > 0:
             with st.chat_message(message["role"]):
                     st.markdown(message["content"])
@@ -174,11 +163,10 @@ else:
 if user_input:
     st.session_state['solution_provided'] = False
     st.session_state['feedback'] = False
-    data: dict = None
+    data: dict = []
     with st.chat_message("user"):
         st.markdown(user_input)
         try:
-            # stream_out= False
             stream_out, code, history, agent_response,data = agent.run(user_input=user_input, conversation=history, stream=False)
         except Exception as e:
             agent_response= None
@@ -209,9 +197,7 @@ if user_input:
 
 
     if data is not None:
-        # print("adding data to session state, data is ", data)
         st.session_state['display_data'] = data
 
 st.session_state['history'] = history
-# print("question_count at the end of interaction ", question_count)
 st.session_state['question_count'] = question_count
