@@ -14,19 +14,14 @@ from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
 from functions.search_vector_function import SearchVectorFunction
 from agents.smart_agent.smart_agent import Smart_Agent
-from agents.agent_configuration import AgentConfiguration
+from agents.agent_configuration import AgentConfiguration, agent_configuration_from_dict
 
 sys.path.append("..")
 
 # Initialize smart agent with CODER1 persona
 with open(file=os.environ.get("SMART_AGENT_PROMPT_LOCATION"), mode="r", encoding="utf-8") as file:
         agent_config_data = yaml.safe_load(stream=file)
-        agent_config = AgentConfiguration(
-            persona=agent_config_data["persona"],
-            model=agent_config_data["model"],
-            initial_message=agent_config_data["initial_message"],
-            name=agent_config_data["name"]
-        )
+        agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
 
 search_client = SearchClient(
     endpoint=os.environ.get("AZURE_SEARCH_ENDPOINT"),
@@ -47,20 +42,11 @@ search_vector_function = SearchVectorFunction(
         model=os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")
 )
 
-AVAILABLE_FUNCTIONS: dict[str, Any] = {
-    "search": search_vector_function.search
-}
-
-FUNCTIONS_SPEC: Any = [
-    search_vector_function.search_function_spec
-]
-
 agent = Smart_Agent(
     logger=logging,
     client=client,
     agent_configuration=agent_config,
-    functions_list=AVAILABLE_FUNCTIONS,
-    functions_spec=FUNCTIONS_SPEC
+    search_vector_function = search_vector_function
 )
 
 st.set_page_config(layout="wide",page_title="Smart Research Copilot Demo Application using LLM")

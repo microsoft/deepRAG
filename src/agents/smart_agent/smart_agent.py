@@ -3,13 +3,14 @@ import inspect
 import json
 import logging
 from types import MappingProxyType
-from typing import Any, List
+from typing import List
 from openai import AzureOpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from agents.agent import Agent
 from agents.agent_configuration import AgentConfiguration
+from functions.search_vector_function import SearchVectorFunction
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
@@ -18,18 +19,19 @@ class Smart_Agent(Agent):
             logger: logging,
             agent_configuration: AgentConfiguration,
             client: AzureOpenAI,
-            functions_spec: Any,
-            functions_list: dict[str, Any],
+            search_vector_function: SearchVectorFunction,
             max_error_run:int = 3,
             max_run_per_question:int = 10
     ):
         super().__init__(logger=logger, agent_configuration=agent_configuration)
         
         self.__client = client
-        self.__functions_spec = functions_spec
-        self._functions_list = functions_list
         self.__max_error_run = max_error_run
         self.__max_run_per_question = max_run_per_question
+        self.__functions_spec = [tool.to_openai_tool() for tool in self._agent_configuration.tools]
+        self._functions_list = {
+            "search": search_vector_function.search
+        }
 
     def run(self, user_input, conversation=None, stream=False, ):
         if user_input is None:  # if no input return init message
