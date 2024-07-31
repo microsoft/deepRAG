@@ -9,10 +9,22 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
+langserve = "^0.2.2"
+uvicorn = "^0.30.3"
+fastapi = "^0.111.1"
+langchain-community = "^0.2.10"
+sse-starlette = "^2.1.2"
+asyncio = "^3.4.3"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
 pytest = "^8.2.2"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "../src",
+]
 
 [build-system]
 requires = ["poetry-core"]
