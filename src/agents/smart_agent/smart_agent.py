@@ -61,14 +61,6 @@ class Smart_Agent(Agent):
 
         while True:
             response_message: ChatCompletionMessage
-            if run_count >= self.__max_run_per_question:
-                self.__history.reset_history_to_last_question()
-                self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
-                response_message = ChatCompletionMessage(
-                    role="assistant",
-                    content="I am unable to answer this question at the moment, please ask another question."
-                )
-                break
 
             if execution_error_count >= self.__max_error_run:
                 self.__history.reset_history_to_last_question()

@@ -23,7 +23,7 @@ with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-
         data=agent_config_data)
 
 session_id = str(uuid.uuid4())
-agent = SmartAgentFactory.create_smart_agent(settings=settings, session_id=session_id)
+agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
 
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application using LLM")

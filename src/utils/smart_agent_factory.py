@@ -11,12 +11,11 @@ from models.agent_configuration import AgentConfiguration, agent_configuration_f
 from models.settings import Settings
 from services.history import History
 from agents.smart_agent.smart_agent import Smart_Agent
-from fsspec.implementations.local import LocalFileSystem
 
 class SmartAgentFactory:
     @staticmethod
-    def create_smart_agent(settings: Settings, session_id: str) -> Smart_Agent:
-        with open(file=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
+    def create_smart_agent(fs: fsspec.AbstractFileSystem, settings: Settings, session_id: str) -> Smart_Agent:
+        with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
             agent_config_data = yaml.safe_load(stream=file)
             agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
 
@@ -49,7 +48,6 @@ class SmartAgentFactory:
                 decode_responses=True
         )
 
-        fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
         history: History = History(session_id=session_id, cache=redis_client)
         return Smart_Agent(
             logger=Logger(name="smart_agent"),
@@ -57,5 +55,5 @@ class SmartAgentFactory:
             agent_configuration=agent_config,
             search_vector_function = search_vector_function,
             history = history,
-            fs=LocalFileSystem(),
+            fs=fs,
         )

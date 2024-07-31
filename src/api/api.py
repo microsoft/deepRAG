@@ -1,5 +1,6 @@
 """The main server file for the LangChain server."""
 import uuid
+import fsspec
 from fastapi import FastAPI
 from langserve import add_routes
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -12,8 +13,9 @@ from utils.smart_agent_factory import SmartAgentFactory
 from agents.smart_agent.smart_agent import Smart_Agent
 
 def deep_rag_search(question:str):
+    fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
     session_id = str(object=uuid.uuid4())
-    agent: Smart_Agent = SmartAgentFactory.create_smart_agent(settings=settings, session_id=session_id)
+    agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
     agent_response: AgentResponse = agent.run(user_input=question, conversation=[], stream=False)
 
     return agent_response.response
