@@ -12,10 +12,10 @@ from azure.core.credentials import AzureKeyCredential
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
-from functions.search_vector_function import SearchVectorFunction
-from agents.smart_agent.smart_agent import Smart_Agent
-from models.agent_configuration import AgentConfiguration, agent_configuration_from_dict
-from models.settings import Settings
+from functions import SearchVectorFunction
+from agents import Smart_Agent
+from models import AgentConfiguration, agent_configuration_from_dict
+from models import Settings
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 

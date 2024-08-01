@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from logging import Logger
 from abc import abstractmethod
-from models.agent_configuration import AgentConfiguration
+from models import AgentConfiguration
 
 @dataclass
 class AgentResponse:
@@ -9,7 +9,6 @@ class AgentResponse:
     conversation: list
     response: str | None
     streaming: bool = False
-
 
 class Agent():
     """Base class for agents"""

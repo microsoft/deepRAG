@@ -2,7 +2,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, List, Optional
 from langserve.client import RemoteRunnable
-from api.api import app
+from api import app
 import pytest
 import uvicorn
 from fastapi import FastAPI

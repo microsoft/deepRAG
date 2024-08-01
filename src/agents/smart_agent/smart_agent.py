@@ -9,9 +9,9 @@ from openai import AzureOpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
-from agents.agent import Agent, AgentResponse
-from models.agent_configuration import AgentConfiguration
-from functions.search_vector_function import SearchVectorFunction
+from agent import Agent, AgentResponse
+from models import AgentConfiguration
+from functions import SearchVectorFunction
 import fsspec
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 
