@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "agent"
+name = "agents"
 version = "0.1.0"
 description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]

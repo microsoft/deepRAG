@@ -8,15 +8,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langchain = "^0.2.6"
 langserve = "^0.2.2"
-networkx = "^3.3"
-langchain-openai = "^0.1.10"
-langchain-community = "^0.2.6"
 uvicorn = "^0.23.2"
-azure-search-documents = "^11.4.0"
-azure-identity = "^1.17.1"
-azure-storage-blob = "^12.20.0"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

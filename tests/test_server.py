@@ -53,16 +53,10 @@ class UvicornTestServer(uvicorn.Server):
         self.should_exit = True
         await self._serve_task
 
-@app.on_event(event_type="startup")
-async def startup_event() -> None:
-    print("Starting up server: startup event")
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI) -> AsyncGenerator[FastAPI, Any]:
-    server = UvicornTestServer(app=app)
-    await server.up()
     yield app
-    await server.down()
 
 @pytest.fixture(scope="session")
 async def server() -> AsyncGenerator[UvicornTestServer, Any]:

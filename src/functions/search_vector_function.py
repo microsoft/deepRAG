@@ -63,7 +63,7 @@ class SearchVectorFunction:
         return output
 
     def __get_text_embedding(self, text) -> List[float]:
-        text: Any = text.replace("\n", " ")
+        text = text.replace("\n", " ")
 
         while True:
             embedding_response: List[float] = self.__client.embeddings.create(

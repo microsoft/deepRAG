@@ -5,19 +5,16 @@ description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
-package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-langserve = "^0.2.2"
-uvicorn = "^0.30.3"
-fastapi = "^0.111.1"
-langchain-community = "^0.2.10"
-sse-starlette = "^2.1.2"
 asyncio = "^3.4.3"
+api = { path = "../src/api", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.2.2"
 
 [tool.pytest.ini_options]

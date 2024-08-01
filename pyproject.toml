@@ -6,14 +6,12 @@ authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
 package-mode = false
-packages = [
-    { include = "./tests" },
-    { include = "./src/api" },
-    { include = "./src/app" },
-]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+api = { path = "./src/api", develop = true }
+app = { path = "./src/app", develop = true }
+tests = { path = "./tests", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 langchain-cli = "^0.0.25"
