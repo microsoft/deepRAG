@@ -5,9 +5,6 @@ description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [
-    { include = "../models" },
-]
 
 [tool.poetry.dependencies]
 python = "^3.11"
