@@ -1,9 +1,8 @@
 from typing import Any, List
 from langchain_core.documents.base import Document
-from langchain_core.embeddings import FakeEmbeddings, DeterministicFakeEmbedding
+from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_core.vectorstores.in_memory import InMemoryVectorStore
-import pytest_mock
 import pytest
 
 @pytest.fixture(scope="module")
