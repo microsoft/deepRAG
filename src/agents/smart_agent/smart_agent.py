@@ -6,7 +6,7 @@ from types import MappingProxyType
 from typing import List
 import fsspec.implementations
 from openai import AzureOpenAI
-from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from agent import Agent, AgentResponse
@@ -24,13 +24,11 @@ class Smart_Agent(Agent):
             client: AzureOpenAI,
             search_vector_function: SearchVectorFunction,
             fs: fsspec.AbstractFileSystem,
-            max_error_run:int = 3,
             max_run_per_question:int = 10,
     ) -> None:
         super().__init__(logger=logger, agent_configuration=agent_configuration)
 
         self.__client: AzureOpenAI = client
-        self.__max_error_run: int = max_error_run
         self.__max_run_per_question: int = max_run_per_question
         self.__functions_spec: List[ChatCompletionToolParam] = [tool.to_openai_tool() for tool in self._agent_configuration.tools]
         self._functions_list = {
@@ -45,12 +43,12 @@ class Smart_Agent(Agent):
         if conversation is not None:  # if no history return init message
             self._conversation = conversation
 
-        execution_error_count = 0
         run_count = 0
         self._conversation.append({"role": "user", "content": user_input})
 
         while True:
             response_message: ChatCompletionMessage
+
             if run_count >= self.__max_run_per_question:
                 self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
                 response_message = ChatCompletionMessage(
@@ -58,10 +56,6 @@ class Smart_Agent(Agent):
                     content="I am unable to answer this question at the moment, please ask another question."
                 )
                 break
-
-            if execution_error_count >= self.__max_error_run:
-                self._logger.debug(msg=f"resetting history due to too many errors ({execution_error_count} errors) in the code execution")
-                execution_error_count = 0
 
             response: ChatCompletion = self.__client.chat.completions.create(
                 model=self._agent_configuration.model,
@@ -73,7 +67,7 @@ class Smart_Agent(Agent):
             
             run_count += 1
             response_message = response.choices[0].message
-
+            
             if response_message.content is None:
                 response_message.content = ""
 
@@ -86,7 +80,11 @@ class Smart_Agent(Agent):
             else:
                 break
 
-        return AgentResponse(streaming=stream, conversation=self._conversation, response=response_message.content)
+        return AgentResponse(
+            streaming=stream,
+            conversation=self._conversation,
+            response=response_message.content
+        )
 
     def __check_args(self, function, args) -> bool:
         """Check if the function has the correct number of arguments"""
