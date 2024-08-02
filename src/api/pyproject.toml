@@ -10,6 +10,8 @@ readme = "README.md"
 python = "^3.11"
 langserve = "^0.2.2"
 uvicorn = "^0.23.2"
+pydantic_settings = "^2.3.4"
+redis = "^5.0.7"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

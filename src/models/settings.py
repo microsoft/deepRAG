@@ -15,3 +15,5 @@ class Settings(BaseSettings):
     azure_vision_endpoint: str = Field(validation_alias='AZURE_AI_VISION_ENDPOINT')
     smart_agent_prompt_location: str = Field(validation_alias='SMART_AGENT_PROMPT_LOCATION')
     smart_agent_image_path: str = Field(validation_alias='IMAGE_PATH')
+    azure_redis_endpoint: str = Field(validation_alias='AZURE_REDIS_ENDPOINT')
+    azure_redis_key: str = Field(validation_alias='AZURE_REDIS_KEY')

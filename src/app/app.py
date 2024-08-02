@@ -1,14 +1,12 @@
-from typing import LiteralString
-from agent import AgentResponse
+import uuid
 import streamlit as st
 import os
 import json
 from logging import Logger
 import pandas as pd
 import yaml
-from openai import AzureOpenAI
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
+import fsspec
+from typing import LiteralString
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
@@ -29,33 +27,8 @@ with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-
     agent_config: AgentConfiguration = agent_configuration_from_dict(
         data=agent_config_data)
 
-search_client = SearchClient(
-    endpoint=settings.azure_search_endpoint,
-    index_name=settings.azure_search_index_name,
-    credential=AzureKeyCredential(key=settings.azure_search_key)
-)
-
-client = AzureOpenAI(
-    api_key=settings.openai_key,
-    api_version=settings.openai_api_version,
-    azure_endpoint=settings.openai_endpoint,
-)
-
-search_vector_function = SearchVectorFunction(
-    logger=Logger(name="search_vector_function"),
-    search_client=search_client,
-    client=client,
-    model=settings.openai_embedding_deployment,
-    image_directory=settings.smart_agent_image_path
-)
-
-agent = Smart_Agent(
-    logger=Logger(name="smart_agent"),
-    client=client,
-    agent_configuration=agent_config,
-    search_vector_function=search_vector_function,
-    fs=LocalFileSystem(),
-)
+session_id = str(uuid.uuid4())
+agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
 
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application using LLM")

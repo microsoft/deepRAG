@@ -1,14 +1,10 @@
 from dataclasses import dataclass
 from logging import Logger
+from dataclasses import dataclass
+from logging import Logger
 from abc import abstractmethod
-from models import AgentConfiguration
-
-@dataclass
-class AgentResponse:
-    """Class to represent a response from an agent"""
-    conversation: list
-    response: str | None
-    streaming: bool = False
+from models.agent_configuration import AgentConfiguration
+from models.agent_response import AgentResponse
 
 class Agent():
     """Base class for agents"""

@@ -20,4 +20,12 @@
         "${workspaceFolder}/tests"
     ],
     "python.analysis.typeCheckingMode": "standard"
+    "python.testing.unittestEnabled": false,
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/.venv/bin",
+    ],
+    "python.testing.pytestArgs": [
+        "${workspaceFolder}/tests"
+    ],
+    "python.analysis.typeCheckingMode": "standard"
 }
