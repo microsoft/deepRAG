@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Protocol, Generic, TypeVar, Union
+from typing import Protocol, TypeVar, Union
 
 KeyT = TypeVar("KeyT", contravariant=True)
 ResponseT = TypeVar("ResponseT", covariant=True)

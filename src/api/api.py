@@ -9,8 +9,7 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain_core.embeddings import FakeEmbeddings
 from langchain_core.vectorstores.in_memory import InMemoryVectorStore
-from models import Settings
-from models import AgentResponse
+from models import Settings, AgentResponse
 from utils import SmartAgentFactory
 from agents import Smart_Agent
 

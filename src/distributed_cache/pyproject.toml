@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "distributed_cache"
+version = "0.1.0"
+description = "Common services"
+authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
