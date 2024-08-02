@@ -18,10 +18,12 @@ from models import AgentConfiguration, agent_configuration_from_dict
 from models import Settings
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
+from fsspec.utils import get_protocol
 
 # Initialize smart agent with CODER1 persona
-settings: Settings = Settings(_env_file=".env") # type: ignore
-fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
+settings: Settings = Settings(_env_file=".env")  # type: ignore
+protocol: str = get_protocol(settings.smart_agent_prompt_location)
+fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
 with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
     agent_config_data = yaml.safe_load(stream=file)
     agent_config: AgentConfiguration = agent_configuration_from_dict(
@@ -148,7 +150,7 @@ if len(history) > 0:
         if message.get("role") != "system" \
             and message.get("role") != "tool" \
                 and message.get("name") is None \
-        and len(message.get("content") or []) > 0:
+            and len(message.get("content") or []) > 0:
             with st.chat_message(name=message["role"]):
                 st.markdown(body=message["content"])
         elif message.get("role") == "tool":
