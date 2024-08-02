@@ -2,7 +2,6 @@ import uuid
 import streamlit as st
 import os
 import json
-from logging import Logger
 import pandas as pd
 import yaml
 import fsspec
@@ -10,25 +9,27 @@ from typing import LiteralString
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
-from functions import SearchVectorFunction
+from utils import SmartAgentFactory
 from agents import Smart_Agent
-from models import AgentConfiguration, agent_configuration_from_dict
-from models import Settings
+from models import (
+    AgentConfiguration,
+    agent_configuration_from_dict,
+    AgentResponse,
+    Settings)
 import fsspec
-from fsspec.implementations.local import LocalFileSystem
 from fsspec.utils import get_protocol
 
 # Initialize smart agent with CODER1 persona
 settings: Settings = Settings(_env_file=".env")  # type: ignore
-protocol: str = get_protocol(settings.smart_agent_prompt_location)
+protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
 fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
 with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
     agent_config_data = yaml.safe_load(stream=file)
     agent_config: AgentConfiguration = agent_configuration_from_dict(
         data=agent_config_data)
 
-session_id = str(uuid.uuid4())
-agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
+session_id = str(object=uuid.uuid4())
+agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
 
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application using LLM")
@@ -42,26 +43,25 @@ style: LiteralString = f"""
 """
 st.markdown(body=style, unsafe_allow_html=True)
 
-
 MAX_HIST = 3
 # Sidebar contents
 with st.sidebar:
 
-    st.title('Deep RAG AI Copilot')
-    st.markdown('''
+    st.title(body='Deep RAG AI Copilot')
+    st.markdown(body='''
     ''')
-    st.checkbox("Show AI Assistant's internal thought process",
+    st.checkbox(label="Show AI Assistant's internal thought process",
                 key='show_internal_thoughts', value=False)
 
-    add_vertical_space(5)
-    if st.button('Clear Chat'):
+    add_vertical_space(num_lines=5)
+    if st.button(label='Clear Chat'):
 
         if 'history' in st.session_state:
             st.session_state['history'] = []
         if 'display_data' in st.session_state:
             st.session_state['display_data'] = {}
 
-    st.markdown("""
+    st.markdown(body="""
 ### Sample Questions:  
 1. Suggest alternative headlines inspired from 'hack it the way you like it' for a new coffee concentrate product launch in Australia targeting young people
 2. What is the slogan of NESCAFE?
@@ -86,7 +86,7 @@ with st.sidebar:
         st.session_state['solution_provided'] = False
 
 
-user_input = st.chat_input(placeholder="You:")
+user_input: str | None = st.chat_input(placeholder="You:")
 # Conditional display of AI generated responses as a function of user provided prompts
 history = st.session_state['history']
 display_data = st.session_state['display_data']

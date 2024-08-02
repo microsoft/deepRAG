@@ -1,24 +1,29 @@
 """The main server file for the LangChain server."""
+from typing import Any
 import uuid
 import fsspec
+from fsspec.utils import get_protocol
 from fastapi import FastAPI
 from langserve import add_routes
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain_core.embeddings import FakeEmbeddings
 from langchain_core.vectorstores.in_memory import InMemoryVectorStore
-from models.settings import Settings
-from models.agent_response import AgentResponse
-from utils.smart_agent_factory import SmartAgentFactory
-from agents.smart_agent.smart_agent import Smart_Agent
+from models import Settings
+from models import AgentResponse
+from utils import SmartAgentFactory
+from agents import Smart_Agent
 
-def deep_rag_search(question:str):
-    fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol="file")
+def deep_rag_search(question: str) -> Any | str | None:
+    protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
+    fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
     session_id = str(object=uuid.uuid4())
-    agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
-    agent_response: AgentResponse = agent.run(user_input=question, conversation=[], stream=False)
-
+    agent: Smart_Agent = SmartAgentFactory.create_smart_agent(
+        fs=fs, settings=settings, session_id=session_id)
+    agent_response: AgentResponse = agent.run(
+        user_input=question, conversation=[], stream=False)
     return agent_response.response
+
 
 app = FastAPI(
     title="LangChain Server",
@@ -26,7 +31,7 @@ app = FastAPI(
     description="A simple api server using Langchain's Runnable interfaces",
 )
 
-settings: Settings = Settings()
+settings: Settings = Settings(_env_file=".env")  # type: ignore
 azureSearch = InMemoryVectorStore(
     embedding=FakeEmbeddings(size=1568),
 )
@@ -39,11 +44,12 @@ add_routes(
 
 add_routes(
     app=app,
-    runnable= RunnablePassthrough() | RunnableLambda(lambda question: deep_rag_search(question=question)),
+    runnable=RunnablePassthrough() | RunnableLambda(
+        func=lambda question: deep_rag_search(question=str(object=question))),
     path="/deepRAG",
 )
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app=app, host="localhost", port=8000)

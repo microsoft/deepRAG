@@ -3,8 +3,8 @@ from logging import Logger
 from dataclasses import dataclass
 from logging import Logger
 from abc import abstractmethod
-from models.agent_configuration import AgentConfiguration
-from models.agent_response import AgentResponse
+from models import AgentConfiguration
+from models import AgentResponse
 
 class Agent():
     """Base class for agents"""

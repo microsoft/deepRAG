@@ -14,6 +14,10 @@ streamlit = "^1.36.0"
 matplotlib = "^3.9.1"
 plotly = "^5.23.0"
 openai = "^1.37.0"
+models = { path = "../models", develop = true }
+functions = { path = "../functions", develop = true }
+agents = { path = "../agents", develop = true }
+redis = "^5.0.8"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

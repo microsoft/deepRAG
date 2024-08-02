@@ -47,12 +47,12 @@ class SearchVectorFunction:
         )
 
         for result in results:
-            self.__logger.debug(f"topic: {result['topic']}")
+            self.__logger.debug(msg=f"topic: {result['topic']}")
             self.__logger.debug("related_content: ", result['related_content'])
-            page_image = os.path.join(
+            page_image: str = os.path.join(
                 self.__image_directory,
                 result['file_name'],
-                "page_" + str(result['page_number'])
+                "page_" + str(object=result['page_number'])
             )+".png"
 
             output.append({
@@ -62,13 +62,9 @@ class SearchVectorFunction:
 
         return output
 
-    def __get_text_embedding(self, text) -> List[float]:
+    def __get_text_embedding(self, text: str) -> List[float]:
         text = text.replace("\n", " ")
-
-        while True:
-            embedding_response: List[float] = self.__client.embeddings.create(
-                    input=[text],
-                    model=self.__model
-                ).data[0].embedding
-
-            return embedding_response
+        return self.__client.embeddings.create(
+            input=[text],
+            model=self.__model
+        ).data[0].embedding
