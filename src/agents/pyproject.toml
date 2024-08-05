@@ -1,19 +1,18 @@
 [tool.poetry]
-name = "agent"
+name = "agents"
 version = "0.1.0"
 description = "RAG enhanced though multiple search types."
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [
-    { include = "smart_agent", from = "." }
-]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 pydantic-settings = "^2.4.0"
 openai = "^1.37.1"
 fsspec = "^2024.6.1"
+models = { path = "../models", develop = true }
+functions = { path = "../functions", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

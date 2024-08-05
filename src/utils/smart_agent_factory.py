@@ -5,12 +5,14 @@ from logging import Logger
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from distributed_cache.cache import Cache
-from functions.search_vector_function import SearchVectorFunction
-from models.agent_configuration import AgentConfiguration, agent_configuration_from_dict
-from models.settings import Settings
-from services.history import History
-from agents.smart_agent.smart_agent import Smart_Agent
+from distributedcache import CacheProtocol
+from functions import SearchVectorFunction
+from models import AgentConfiguration, agent_configuration_from_dict
+from models import Settings
+from services import History
+from agents import Smart_Agent
+from redis.commands.core import BasicKeyCommands
+from redis.typing import KeyT, ResponseT, AbsExpiryT, ExpiryT, EncodableT
 
 class SmartAgentFactory:
     @staticmethod
@@ -39,13 +41,13 @@ class SmartAgentFactory:
                 image_directory=settings.smart_agent_image_path
         )
 
-        redis_client: Cache = redis.Redis(
-                host=settings.azure_redis_endpoint,
-                port=6380,
-                ssl=True,
-                db=0,
-                password=settings.azure_redis_key,
-                decode_responses=True
+        redis_client: CacheProtocol[KeyT, ResponseT, EncodableT, ExpiryT, AbsExpiryT] = redis.Redis(
+            host=settings.azure_redis_endpoint,
+            port=6380,
+            ssl=True,
+            db=0,
+            password=settings.azure_redis_key,
+            decode_responses=True
         )
 
         history: History = History(session_id=session_id, cache=redis_client)

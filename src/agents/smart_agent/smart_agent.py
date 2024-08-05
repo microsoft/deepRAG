@@ -4,18 +4,17 @@ import json
 from logging import Logger
 from types import MappingProxyType
 from typing import List
+import fsspec.implementations
 from openai import AzureOpenAI
-from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
-from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
-from agents.agent import Agent
-from models.agent_configuration import AgentConfiguration
-from models.agent_response import AgentResponse
-from functions.search_vector_function import SearchVectorFunction
-from services.history import History
+from agent import Agent
+from models import AgentConfiguration, AgentResponse
+from functions import SearchVectorFunction
 import fsspec
-
+from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from services import History
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
@@ -27,7 +26,6 @@ class Smart_Agent(Agent):
             search_vector_function: SearchVectorFunction,
             history: History,
             fs: fsspec.AbstractFileSystem,
-            max_error_run:int = 3,
             max_run_per_question:int = 10,
             max_question_to_keep:int = 3,
             max_question_with_detail_hist:int = 1
@@ -35,7 +33,6 @@ class Smart_Agent(Agent):
         super().__init__(logger=logger, agent_configuration=agent_configuration)
         
         self.__client: AzureOpenAI = client
-        self.__max_error_run: int = max_error_run
         self.__max_run_per_question: int = max_run_per_question
         self.__max_question_to_keep: int = max_question_to_keep
         self.__max_question_with_detail_hist: int = max_question_with_detail_hist
@@ -53,7 +50,6 @@ class Smart_Agent(Agent):
         if conversation is not None:
             self._conversation = conversation
 
-        execution_error_count = 0
         run_count = 0
 
         self._conversation.append({"role": "user", "content": user_input})
@@ -61,11 +57,6 @@ class Smart_Agent(Agent):
 
         while True:
             response_message: ChatCompletionMessage
-
-            if execution_error_count >= self.__max_error_run:
-                self.__history.reset_history_to_last_question()
-                self._logger.debug(msg=f"resetting history due to too many errors ({execution_error_count} errors) in the code execution")
-                execution_error_count=0
             
             if run_count >= self.__max_run_per_question:
                 self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
@@ -74,10 +65,6 @@ class Smart_Agent(Agent):
                     content="I am unable to answer this question at the moment, please ask another question."
                 )
                 break
-
-            if execution_error_count >= self.__max_error_run:
-                self._logger.debug(msg=f"resetting history due to too many errors ({execution_error_count} errors) in the code execution")
-                execution_error_count = 0
 
             response: ChatCompletion = self.__client.chat.completions.create(
                 model=self._agent_configuration.model,
@@ -89,7 +76,7 @@ class Smart_Agent(Agent):
             
             run_count += 1
             response_message = response.choices[0].message
-
+            
             if response_message.content is None:
                 response_message.content = ""
 
@@ -102,7 +89,11 @@ class Smart_Agent(Agent):
             else:
                 break
 
-        return AgentResponse(streaming=stream, conversation=self._conversation, response=response_message.content)
+        return AgentResponse(
+            streaming=stream,
+            conversation=self._conversation,
+            response=response_message.content
+        )
 
     def __check_args(self, function, args) -> bool:
         """Check if the function has the correct number of arguments"""

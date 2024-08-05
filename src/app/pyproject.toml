@@ -8,13 +8,13 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-streamlit = "^1.36.0"
 streamlit-extras = "^0.4.3"
-azure-storage-blob = "^12.21.0"
-azure-identity = "^1.17.1"
-azure-search-documents = "^11.5.1"
+fsspec = "^2024.6.1"
+models = { path = "../models", develop = true }
+agents = { path = "../agents", develop = true }
+functions = { path = "../functions", develop = true }
+utils = { path = "../utils", develop = true }
 pydantic-settings = "^2.4.0"
-plotly = "^5.23.0"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
