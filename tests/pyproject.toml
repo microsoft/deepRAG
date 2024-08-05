@@ -16,6 +16,7 @@ env = "^0.1.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.2.2"
+pytest-mock = "^3.14.0"
 
 [tool.pytest.ini_options]
 pythonpath = [
