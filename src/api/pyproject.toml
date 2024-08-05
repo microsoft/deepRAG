@@ -19,6 +19,8 @@ distributedcache = { path = "../distributed_cache", develop = true }
 services = { path = "../services", develop = true }
 fastapi = "^0.112.0"
 langchain-community = "^0.2.11"
+azure-identity = "^1.17.1"
+langchain-openai = "^0.1.20"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"
