@@ -13,6 +13,7 @@ openai = "^1.37.1"
 fsspec = "^2024.6.1"
 models = { path = "../models", develop = true }
 functions = { path = "../functions", develop = true }
+services = { path = "../services", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

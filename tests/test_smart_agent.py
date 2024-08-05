@@ -76,7 +76,8 @@ def setup(
         client=mockAzureOpenAI,
         agent_configuration= mocker.Mock(tools=[]),
         search_vector_function= mocker.Mock(search=mocker.Mock(return_value=[])),
-        fs= mocker.Mock()
+        fs= mocker.Mock(),
+        history= mocker.Mock()
     )
 
 def test_for_valid_response(mocker: pytest_mock.MockerFixture) -> None:

@@ -56,6 +56,7 @@ class SearchVectorFunction:
             )+".png"
 
             output.append({
+                'id': result['id'],
                 'image_path': page_image,
                 'related_content': result['related_content']}
             )
