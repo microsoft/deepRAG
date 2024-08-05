@@ -11,12 +11,13 @@ python = "^3.11"
 azure-search-documents = "^11.4.0"
 azure-storage-blob = "^12.20.0"
 streamlit = "^1.36.0"
-matplotlib = "^3.9.1"
+matplotlib = "^3.9.0"
 plotly = "^5.23.0"
 openai = "^1.37.0"
 models = { path = "../models", develop = true }
 functions = { path = "../functions", develop = true }
 agents = { path = "../agents", develop = true }
+distributedcache = { path = "../distributed_cache", develop = true }
 redis = "^5.0.8"
 
 [tool.poetry.group.dev.dependencies]

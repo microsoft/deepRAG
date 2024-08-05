@@ -5,11 +5,11 @@ from logging import Logger
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from distributed_cache.cache import CacheProtocol
+from distributedcache import CacheProtocol
 from functions import SearchVectorFunction
 from models import AgentConfiguration, agent_configuration_from_dict
 from models import Settings
-from services.history import History
+from services import History
 from agents import Smart_Agent
 from redis.commands.core import BasicKeyCommands
 from redis.typing import KeyT, ResponseT, AbsExpiryT, ExpiryT, EncodableT

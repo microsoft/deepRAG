@@ -15,7 +15,6 @@ agents = { path = "../agents", develop = true }
 functions = { path = "../functions", develop = true }
 utils = { path = "../utils", develop = true }
 pydantic-settings = "^2.4.0"
-plotly = "^5.23.0"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

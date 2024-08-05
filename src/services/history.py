@@ -1,6 +1,6 @@
 import base64
 import pickle
-from distributed_cache.cache import CacheProtocol
+from distributedcache import CacheProtocol
 
 class History:
     """History class"""

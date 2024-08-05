@@ -14,7 +14,7 @@ from models import AgentConfiguration, AgentResponse
 from functions import SearchVectorFunction
 import fsspec
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
-from services.history import History
+from services import History
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""

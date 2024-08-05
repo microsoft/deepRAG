@@ -5,7 +5,7 @@
 			"version": "3.11"
 		}
 	},
-	"initializeCommand": "pip install poetry -U && poetry config virtualenvs.in-project true && poetry lock --no-update && poetry install",
+	"initializeCommand": "pip install poetry && poetry lock --no-update && poetry install",
 	"customizations": {
 		"vscode": {
 			"extensions": [

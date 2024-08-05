@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "distributed_cache"
+name = "distributedcache"
 version = "0.1.0"
 description = "Common services"
 authors = ["Tyler Kendrick <tkendrick@microsoft.com>"]
