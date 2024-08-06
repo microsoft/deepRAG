@@ -21,6 +21,7 @@ fastapi = "^0.112.0"
 langchain-community = "^0.2.11"
 azure-identity = "^1.17.1"
 langchain-openai = "^0.1.20"
+azure-search-documents = "^11.5.1"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

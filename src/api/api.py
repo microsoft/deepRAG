@@ -14,6 +14,10 @@ from langchain_openai import AzureOpenAIEmbeddings
 from models import Settings, AgentResponse
 from utils import SmartAgentFactory
 from agents import Smart_Agent
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
+from typing import List
+from azure.search.documents.models import QueryAnswerResult
 
 def deep_rag_search(question: str) -> Any | str | None:
     protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
@@ -26,13 +30,13 @@ def deep_rag_search(question: str) -> Any | str | None:
     return agent_response.response
 
 class Server:
-    def __init__(self, vector_store: VectorStore, app: FastAPI):
-        self.vector_store = vector_store
+    def __init__(self, search_client: SearchClient, app: FastAPI):
+        self.search_client = search_client
         self.app = app
         add_routes(
             app=app,
             runnable= RunnableLambda(
-                func=lambda question: vector_store.search(query=str(object=question), search_type="similarity")),
+                func=lambda question: self.vector_rag_search(question=str(object=question))),
             path="/vectorRAG",
         )
 
@@ -43,6 +47,10 @@ class Server:
             path="/deepRAG",
         )
 
+    def vector_rag_search(self, question: str) -> Any | str | None:
+        answers: List[QueryAnswerResult] | None = self.search_client.search(search_text=str(object=question), query_type="simple").get_answers()
+        return answers if answers is not None and len(answers) > 0 else ["No results"]
+
 if __name__ == "__main__":
     import uvicorn
 
@@ -52,20 +60,12 @@ if __name__ == "__main__":
         description="A simple api server using Langchain's Runnable interfaces",
     )
     settings: Settings = Settings(_env_file=".env")  # type: ignore
-    embeddings = AzureOpenAIEmbeddings(
-        api_key=settings.openai_key,
-        api_version=settings.openai_api_version,
-        azure_endpoint=settings.openai_endpoint,
-        model=settings.openai_embedding_deployment,
-    )
-    azureSearch = AzureSearch(azure_search_endpoint=settings.azure_search_endpoint,
-                          azure_search_key=settings.azure_search_key,
-                          index_name=settings.azure_search_index_name,
-                          embedding_function=embeddings)
-    # azureSearch = InMemoryVectorStore(
-    #     embedding=FakeEmbeddings(size=1568),
-    # )
 
-    server = Server(vector_store=azureSearch, app=app)
+    service_endpoint = settings.azure_search_endpoint
+    index_name = settings.azure_search_index_name
+    key = settings.azure_search_key
+    search_client = SearchClient(endpoint=service_endpoint, index_name=index_name, credential=AzureKeyCredential(key=key))
+
+    server = Server(search_client=search_client, app=app)
 
     uvicorn.run(app=server.app, host="localhost", port=8000)
