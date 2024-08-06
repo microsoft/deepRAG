@@ -39,7 +39,6 @@ class Server:
                 func=lambda question: self.vector_rag_search(question=str(object=question))),
             path="/vectorRAG",
         )
-
         add_routes(
             app=app,
             runnable=RunnablePassthrough() | RunnableLambda(
@@ -48,7 +47,7 @@ class Server:
         )
 
     def vector_rag_search(self, question: str) -> Any | str | None:
-        answers: List[QueryAnswerResult] | None = self.search_client.search(search_text=str(object=question), query_type="simple").get_answers()
+        answers: List[QueryAnswerResult] | None = self.search_client.search(search_text=str(object=question), query_type="simple", search_fields=["topic"], query_answer_threshold=2.0).get_answers()
         return answers if answers is not None and len(answers) > 0 else ["No results"]
 
 if __name__ == "__main__":
@@ -67,5 +66,4 @@ if __name__ == "__main__":
     search_client = SearchClient(endpoint=service_endpoint, index_name=index_name, credential=AzureKeyCredential(key=key))
 
     server = Server(search_client=search_client, app=app)
-
     uvicorn.run(app=server.app, host="localhost", port=8000)
