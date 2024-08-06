@@ -56,7 +56,7 @@ class SearchVectorFunction:
             )+".png"
 
             output.append({
-                'id': result['id'],
+                'id': result['id'] if 'id' in result.keys() else None,
                 'image_path': page_image,
                 'related_content': result['related_content']}
             )

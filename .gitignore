@@ -8,8 +8,8 @@ dist/
 .pytest_cache/
 .venv/
 .env
-processed_data/
 poetry.lock
+ingestion/
 
 
 # User-specific files

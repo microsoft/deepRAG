@@ -6,7 +6,7 @@ from types import MappingProxyType
 from typing import List
 import fsspec.implementations
 from openai import AzureOpenAI
-from openai.types.chat.chat_completion import ChatCompletion, Choice
+from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
 from agent import Agent
@@ -18,6 +18,7 @@ from services import History
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
+
     def __init__(
             self,
             logger: Logger,
@@ -26,17 +27,18 @@ class Smart_Agent(Agent):
             search_vector_function: SearchVectorFunction,
             history: History,
             fs: fsspec.AbstractFileSystem,
-            max_run_per_question:int = 10,
-            max_question_to_keep:int = 3,
-            max_question_with_detail_hist:int = 1
-    ):
+            max_run_per_question: int = 10,
+            max_question_to_keep: int = 3,
+            max_question_with_detail_hist: int = 1
+    ) -> None:
         super().__init__(logger=logger, agent_configuration=agent_configuration)
-        
+
         self.__client: AzureOpenAI = client
         self.__max_run_per_question: int = max_run_per_question
         self.__max_question_to_keep: int = max_question_to_keep
         self.__max_question_with_detail_hist: int = max_question_with_detail_hist
-        self.__functions_spec: List[ChatCompletionToolParam] = [tool.to_openai_tool() for tool in self._agent_configuration.tools]
+        self.__functions_spec: List[ChatCompletionToolParam] = [
+            tool.to_openai_tool() for tool in self._agent_configuration.tools]
         self.__history: History = history
         self._functions_list = {
             "search": search_vector_function.search
@@ -46,20 +48,22 @@ class Smart_Agent(Agent):
     def run(self, user_input: str | None, conversation=None, stream=False) -> AgentResponse:
         if user_input is None:  # if no input return init message
             return AgentResponse(conversation=self._conversation, response=self._conversation[1]["content"])
-        
+
         if conversation is not None:
             self._conversation = conversation
 
         run_count = 0
 
         self._conversation.append({"role": "user", "content": user_input})
-        self.__history.clean_up_history(max_q_with_detail_hist=self.__max_question_with_detail_hist, max_q_to_keep=self.__max_question_to_keep)
+        self.__history.clean_up_history(
+            max_q_with_detail_hist=self.__max_question_with_detail_hist, max_q_to_keep=self.__max_question_to_keep)
 
         while True:
             response_message: ChatCompletionMessage
-            
+
             if run_count >= self.__max_run_per_question:
-                self._logger.debug(msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
+                self._logger.debug(
+                    msg=f"Need to move on from this question due to max run count reached ({run_count} runs)")
                 response_message = ChatCompletionMessage(
                     role="assistant",
                     content="I am unable to answer this question at the moment, please ask another question."
@@ -73,10 +77,10 @@ class Smart_Agent(Agent):
                 tool_choice='auto',
                 temperature=0.2,
             )
-            
+
             run_count += 1
             response_message = response.choices[0].message
-            
+
             if response_message.content is None:
                 response_message.content = ""
 
@@ -109,15 +113,17 @@ class Smart_Agent(Agent):
                 return False
 
         return True
-    
+
     def __verify_openai_tools(self, tool_calls: List[ChatCompletionMessageToolCall]) -> None:
         for tool_call in tool_calls:
             function_name: str = tool_call.function.name
-            self._logger.debug(msg=f"Recommended Function call: {function_name}")
+            self._logger.debug(
+                msg=f"Recommended Function call: {function_name}")
 
             # verify function exists
             if function_name not in self._functions_list:
-                self._logger.debug(msg=f"Function {function_name} does not exist, retrying")
+                self._logger.debug(
+                    msg=f"Function {function_name} does not exist, retrying")
                 self._conversation.pop()
                 break
 
@@ -137,7 +143,8 @@ class Smart_Agent(Agent):
                 function_response = function_to_call(**function_args)
 
             if function_name == "search":
-                function_response = self.__generate_search_function_response(function_response=function_response)
+                function_response = self.__generate_search_function_response(
+                    function_response=function_response)
 
             self._conversation.append(
                 {
@@ -156,9 +163,12 @@ class Smart_Agent(Agent):
             related_content = item['related_content']
 
             image_file: str | bytes = self.__fs.read_bytes(path=image_path)
-            image_bytes: bytes | None = image_file if isinstance(image_file, bytes) else None
-            image_bytes = image_file.encode(encoding='utf-8') if isinstance(image_file, str) else image_file
-            base64_image: str = base64.b64encode(s=image_bytes).decode(encoding='utf-8')
+            image_bytes: bytes | None = image_file if isinstance(
+                image_file, bytes) else None
+            image_bytes = image_file.encode(
+                encoding='utf-8') if isinstance(image_file, str) else image_file
+            base64_image: str = base64.b64encode(
+                s=image_bytes).decode(encoding='utf-8')
             self._logger.debug("image_path: ", image_path)
 
             search_function_response.append(
@@ -167,5 +177,5 @@ class Smart_Agent(Agent):
                                             "url":  f"data:image/jpeg;base64,{base64_image}"}})
             search_function_response.append(
                 {"type": "text", "text": f"HINT: The following kind of content might be related to this topic\n: {related_content}"})
-            
+
         return search_function_response
