@@ -2,21 +2,18 @@
 from typing import Any
 import uuid
 import fsspec
-import openai
+from openai import AzureOpenAI
 from fsspec.utils import get_protocol
 from fastapi import FastAPI
 from langserve import add_routes
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from models import Settings, AgentResponse
-from openai.types.create_embedding_response import CreateEmbeddingResponse
 from utils import SmartAgentFactory
 from agents import Smart_Agent
-from typing import List
 from functions import SearchVectorFunction
 from logging import Logger
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from openai import AzureOpenAI
 
 def deep_rag_search(question: str) -> Any | str | None:
     protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
@@ -59,7 +56,7 @@ if __name__ == "__main__":
 
     settings: Settings = Settings(_env_file=".env")  # type: ignore
 
-    openai_client = openai.AzureOpenAI(
+    openai_client = AzureOpenAI(
         azure_endpoint=settings.openai_endpoint,
         api_key=settings.openai_key,
         api_version=settings.openai_api_version
