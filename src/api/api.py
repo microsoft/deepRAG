@@ -2,22 +2,21 @@
 from typing import Any
 import uuid
 import fsspec
+import openai
 from fsspec.utils import get_protocol
 from fastapi import FastAPI
 from langserve import add_routes
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_community.vectorstores import VectorStore
-from langchain_community.vectorstores.azuresearch import AzureSearch
-from langchain_core.vectorstores.in_memory import InMemoryVectorStore
-from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import AzureOpenAIEmbeddings
 from models import Settings, AgentResponse
+from openai.types.create_embedding_response import CreateEmbeddingResponse
 from utils import SmartAgentFactory
 from agents import Smart_Agent
-from azure.core.credentials import AzureKeyCredential
-from azure.search.documents import SearchClient
 from typing import List
-from azure.search.documents.models import QueryAnswerResult
+from functions import SearchVectorFunction
+from logging import Logger
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from openai import AzureOpenAI
 
 def deep_rag_search(question: str) -> Any | str | None:
     protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
@@ -30,9 +29,9 @@ def deep_rag_search(question: str) -> Any | str | None:
     return agent_response.response
 
 class Server:
-    def __init__(self, search_client: SearchClient, app: FastAPI):
-        self.search_client = search_client
+    def __init__(self, app: FastAPI, searchVectorFunction: SearchVectorFunction) -> None:
         self.app = app
+        self.searchVectorFunction = searchVectorFunction
         add_routes(
             app=app,
             runnable= RunnableLambda(
@@ -47,8 +46,7 @@ class Server:
         )
 
     def vector_rag_search(self, question: str) -> Any | str | None:
-        answers: List[QueryAnswerResult] | None = self.search_client.search(search_text=str(object=question), query_type="simple", search_fields=["topic"], query_answer_threshold=2.0).get_answers()
-        return answers if answers is not None and len(answers) > 0 else ["No results"]
+        return self.searchVectorFunction.search(search_query=question)
 
 if __name__ == "__main__":
     import uvicorn
@@ -58,12 +56,28 @@ if __name__ == "__main__":
         version="1.0",
         description="A simple api server using Langchain's Runnable interfaces",
     )
+
     settings: Settings = Settings(_env_file=".env")  # type: ignore
 
-    service_endpoint = settings.azure_search_endpoint
-    index_name = settings.azure_search_index_name
-    key = settings.azure_search_key
-    search_client = SearchClient(endpoint=service_endpoint, index_name=index_name, credential=AzureKeyCredential(key=key))
+    openai_client = openai.AzureOpenAI(
+        azure_endpoint=settings.openai_endpoint,
+        api_key=settings.openai_key,
+        api_version=settings.openai_api_version
+    )
 
-    server = Server(search_client=search_client, app=app)
+    search_client = SearchClient(
+        endpoint=settings.azure_search_endpoint,
+        index_name=settings.azure_search_index_name,
+        credential=AzureKeyCredential(key=settings.azure_search_key)
+    )
+
+    search_vector_function = SearchVectorFunction(
+        logger=Logger(name="search_vector_function"),
+        search_client=search_client,
+        client=openai_client,
+        model=settings.openai_embedding_deployment,
+        image_directory=settings.smart_agent_image_path
+    )
+
+    server = Server(app=app, searchVectorFunction=search_vector_function)
     uvicorn.run(app=server.app, host="localhost", port=8000)
