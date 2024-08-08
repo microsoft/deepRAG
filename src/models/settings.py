@@ -17,3 +17,6 @@ class Settings(BaseSettings):
     smart_agent_image_path: str = Field(validation_alias='IMAGE_PATH')
     azure_redis_endpoint: str = Field(validation_alias='AZURE_REDIS_ENDPOINT')
     azure_redis_key: str = Field(validation_alias='AZURE_REDIS_KEY')
+    azure_storage_account_key: str = Field(validation_alias='AZURE_STORAGE_ACCOUNT_KEY')  
+    azure_storage_account_name: str = Field(validation_alias='AZURE_STORAGE_ACCOUNT_NAME')  
+    azure_container_name: str = Field(validation_alias='AZURE_CONTAINER_NAME')  

@@ -5,7 +5,6 @@
 			"version": "3.11"
 		}
 	},
-	"initializeCommand": "pip install poetry && poetry lock --no-update && poetry install",
 	"customizations": {
 		"vscode": {
 			"extensions": [

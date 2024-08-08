@@ -20,7 +20,7 @@ import fsspec
 from fsspec.utils import get_protocol
 
 # Initialize smart agent with CODER1 persona
-settings: Settings = Settings(_env_file=".env")  # type: ignore
+settings: Settings = Settings(_env_file="../../.env")  # type: ignore
 protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
 fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
 with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
