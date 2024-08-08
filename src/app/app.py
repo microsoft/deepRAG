@@ -178,8 +178,9 @@ if user_input:
             if json_response:
                 for item in json_response:
                     if item != "overall_explanation":
+                        
                         image_path: str = os.path.join(
-                            ".\\processed_data", item)
+                            settings.smart_agent_image_path, item)
                         st.markdown(body=json_response[item])
                         st.image(image=image_path)
 
