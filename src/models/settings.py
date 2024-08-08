@@ -20,3 +20,7 @@ class Settings(BaseSettings):
     azure_storage_account_key: str = Field(validation_alias='AZURE_STORAGE_ACCOUNT_KEY')  
     azure_storage_account_name: str = Field(validation_alias='AZURE_STORAGE_ACCOUNT_NAME')  
     azure_container_name: str = Field(validation_alias='AZURE_CONTAINER_NAME')  
+    api_port: int = Field(validation_alias='API_PORT', default='8080')
+    app_port: int = Field(validation_alias='APP_PORT', default='8000')
+    app_host: str = Field(validation_alias='APP_HOST', default='localhost')
+    api_host: str = Field(validation_alias='API_HOST', default='localhost')

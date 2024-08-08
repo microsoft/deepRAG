@@ -81,4 +81,4 @@ if __name__ == "__main__":
     )
 
     server = Server(app=app, searchVectorFunction=search_vector_function)
-    uvicorn.run(app=server.app, host="localhost", port=8000)
+    uvicorn.run(app=server.app, host=settings.api_host, port=settings.api_port)
