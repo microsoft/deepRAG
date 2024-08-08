@@ -9,6 +9,7 @@ from typing import LiteralString
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure
+from langserve.client import RemoteRunnable
 from utils import SmartAgentFactory
 from agents import Smart_Agent
 from models import (
@@ -30,6 +31,7 @@ with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-
 
 session_id = str(object=uuid.uuid4())
 agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
+remoteAgent = RemoteRunnable(f"http://{settings.api_host}:{api_port}/deepRag")
 
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application using LLM")
