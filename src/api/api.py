@@ -27,16 +27,8 @@ def deep_rag_search(input) -> Any | str | None:
     agent_response: AgentResponse = agent.run(
         user_input=question, conversation=[], stream=False)
     SmartAgentFactory.persist_history(smart_agent=agent, session_id=session_id,settings=settings)
-    history = agent_response.conversation
-    conversaton_history = []
-    for message in history:
-        message = dict(message)
-        if message.get("role") != "system" and message.get("role") != "tool" \
-            and len(message.get("content") or []) > 0:
-            print("message", message)
-            conversaton_history.append(message)
     
-    return {"agent_response":agent_response.response, "conversation":conversaton_history}
+    return agent_response.response
 
 class Server:
     def __init__(self, app: FastAPI, searchVectorFunction: SearchVectorFunction) -> None:

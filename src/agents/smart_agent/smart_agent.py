@@ -86,7 +86,7 @@ class Smart_Agent(Agent):
 
 
     def run(self, user_input: str | None, conversation=None, stream=False) -> AgentResponse:
-        if user_input is None:  # if no input return init message
+        if user_input is None or len(user_input)==0:  # if no input return init message
             return AgentResponse(conversation=self._conversation, response=self._conversation[1]["content"])
 
         if conversation is not None and len(conversation) > 0:

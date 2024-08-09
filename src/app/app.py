@@ -19,11 +19,12 @@ from models import (
     Settings)
 import fsspec
 from fsspec.utils import get_protocol
+from logging import Logger
 
-# Initialize smart agent with CODER1 persona
-settings: Settings = Settings(_env_file="../../.env")  # type: ignore
+settings: Settings = Settings(_env_file=".env")  # type: ignore
 protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
 fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
+logger=Logger(name="Frontend")
 with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
     agent_config_data = yaml.safe_load(stream=file)
     agent_config: AgentConfiguration = agent_configuration_from_dict(
@@ -37,7 +38,7 @@ else:
 # agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
 remoteAgent = RemoteRunnable(f"http://{settings.api_host}:{settings.api_port}/deepRAG")
 st.set_page_config(
-    layout="wide", page_title="Smart Research Copilot Demo Application using LLM")
+    layout="wide", page_title="Smart Research Copilot Demo Application with Multi-Modal AI", page_icon="🧠")
 style: LiteralString = f"""
 <style>
     .stTextInput {{
@@ -55,8 +56,8 @@ with st.sidebar:
     st.title(body='Deep RAG AI Copilot')
     st.markdown(body='''
     ''')
-    st.checkbox(label="Show AI Assistant's internal thought process",
-                key='show_internal_thoughts', value=False)
+    # st.checkbox(label="Show AI Assistant's internal thought process",
+    #             key='show_internal_thoughts', value=False)
 
     add_vertical_space(num_lines=5)
     if st.button(label='Clear Chat'):
@@ -78,33 +79,61 @@ with st.sidebar:
     st.write('')
     st.write('')
 
-    st.markdown(body='#### Created by James N., 2024')
+    if 'history' not in st.session_state:
+        st.session_state['history'] = []
     if 'input' not in st.session_state:
         st.session_state['input'] = ""
     if 'question_count' not in st.session_state:
         st.session_state['question_count'] = 0
 
+history = st.session_state['history']
+for message in history:
+    if message.get("role") == "user":
+        st.markdown(body=message.get("content"))
+    else:
+        with st.chat_message(name="assistant"):
+            agent_response = message.get("content")
+            json_response = None
+            if "overall_explanation" in agent_response:
+                try:
+                    agent_response = agent_response.strip("```json")
+                    json_response = json.loads(s=agent_response)
+                    st.markdown(body=json_response.get("overall_explanation"))
+                except Exception as e:
+                    logger.error("exception json loading: "+str(e))
+                    st.markdown(body=agent_response)
+                if json_response:
+                    for item in json_response:
+                        if item != "overall_explanation":
+                            
+                            image_path: str = os.path.join(
+                                settings.smart_agent_image_path, item)
+                            st.markdown(body=json_response[item])
+                            st.image(image=image_path)
+            else:
+                st.markdown(body=agent_response)
+if len(history) ==0:
+    welcome_message = remoteAgent.invoke(input={"question":"", "session_id":session_id}) 
+    with st.chat_message(name="assistant"):
+        st.markdown(body=welcome_message)
+        history.append({"role": "assistant", "content": welcome_message})
+
 
 user_input: str | None = st.chat_input(placeholder="You:")
 # Conditional display of AI generated responses as a function of user provided prompts
-conversation=None
 if user_input:
-    try:
-        output = remoteAgent.invoke(input={"question":user_input, "session_id":session_id})
-        agent_response = output.get("agent_response")
-        conversation = output.get("conversation")
-                
-    except Exception as e:
-        agent_response = None
-        print("error in running agent, error is ", e)
-    if conversation:
-        for message in conversation:
-            with st.chat_message(name=message.get("role")):
-                st.markdown(body=message.get("content"))
-
     with st.chat_message(name="user"):
         st.markdown(body=user_input)
+
+    history.append({"role": "user", "content": user_input})
+    try:
+        agent_response:str = remoteAgent.invoke(input={"question":user_input, "session_id":session_id})                
+    except Exception as e:
+        agent_response = None
+        logger.error("error in running agent, error is "+ str(e))
+
     with st.chat_message(name="assistant"):
+        history.append({"role": "assistant", "content": agent_response})
         json_response = None
         if agent_response:
             if "overall_explanation" in agent_response:
@@ -113,15 +142,16 @@ if user_input:
                     json_response = json.loads(s=agent_response)
                     st.markdown(body=json_response.get("overall_explanation"))
                 except Exception as e:
-                    print("exception json load ", e)
-                    print(agent_response)
+                    logger.error("exception json load "+str(e))
+                    logger.debug((agent_respose))
                     st.markdown(body=agent_response)
             if json_response:
                 for item in json_response:
                     if item != "overall_explanation":
-                        print("item is ", item)
+                        logger.debug("item is "+str(item))
                         
                         image_path: str = os.path.join(
                             settings.smart_agent_image_path, item)
                         st.markdown(body=json_response[item])
                         st.image(image=image_path)
+st.session_state['history'] = history
