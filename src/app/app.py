@@ -56,9 +56,6 @@ with st.sidebar:
     st.title(body='Deep RAG AI Copilot')
     st.markdown(body='''
     ''')
-    # st.checkbox(label="Show AI Assistant's internal thought process",
-    #             key='show_internal_thoughts', value=False)
-
     add_vertical_space(num_lines=5)
     if st.button(label='Clear Chat'):
 
