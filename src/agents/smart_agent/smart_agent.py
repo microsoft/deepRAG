@@ -4,19 +4,18 @@ import json
 from logging import Logger
 from types import MappingProxyType
 from typing import List
-import fsspec.implementations
-import fsspec.utils
 from openai import AzureOpenAI
-from openai.types.chat.chat_completion import ChatCompletion
-from openai.types.chat.chat_completion_message import ChatCompletionMessage
-from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+    ChatCompletionMessageToolCall,
+    ChatCompletionToolParam
+)
 from agent import Agent
 from models import AgentConfiguration, AgentResponse
 from functions import SearchVectorFunction
-import fsspec
-from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from services import History
-from settings import Settings
+from io_wrapper import read_bytes
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
@@ -28,7 +27,6 @@ class Smart_Agent(Agent):
             client: AzureOpenAI,
             search_vector_function: SearchVectorFunction,
             history: History,
-            settings: Settings,
             max_run_per_question: int = 10,
             max_question_to_keep: int = 3,
             max_question_with_detail_hist: int = 1
@@ -45,7 +43,6 @@ class Smart_Agent(Agent):
         self._functions_list = {
             "search": search_vector_function.search
         }
-        self.__settings: Settings = settings
 
     def run(self, user_input: str | None, conversation=None, stream=False) -> AgentResponse:
         if user_input is None:  # if no input return init message
@@ -163,14 +160,7 @@ class Smart_Agent(Agent):
         for item in function_response:
             image_path = item['image_path']
             related_content = item['related_content']
-
-            protocol: str = fsspec.utils.get_protocol(url=image_path)
-            print("protocol: ", protocol)
-            settings: Settings = self.__settings
-            fs: fsspec.AbstractFileSystem = fsspec.filesystem(
-                protocol=protocol,
-                storage_options=settings.__dict__)
-            image_file: str | bytes = fs.read_bytes(path=image_path)
+            image_file: str | bytes = read_bytes(file_path=image_path)
             image_bytes: bytes | None = image_file if isinstance(
                 image_file, bytes) else None
             image_bytes = image_file.encode(
