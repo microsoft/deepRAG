@@ -33,7 +33,11 @@ search_vector_function = SearchVectorFunction(
     search_client=search_client,
     client=openai_client,
     model=settings.openai_embedding_deployment,
-    image_directory=settings.smart_agent_image_path
+    image_directory=settings.smart_agent_image_path,
+    storage_account_key=settings.azure_storage_account_key,  
+    storage_account_name=settings.azure_storage_account_name,  
+    container_name=settings.azure_container_name  
+
 )
 
 server = Server(app=app, searchVectorFunction=search_vector_function)
