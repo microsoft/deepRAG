@@ -5,10 +5,7 @@
 			"version": "3.11"
 		}
 	},
-<<<<<<< HEAD
-=======
 	"initializeCommand": "pip install poetry -U && poetry lock --no-update && poetry install",
->>>>>>> origin/project-setup
 	"customizations": {
 		"vscode": {
 			"extensions": [
