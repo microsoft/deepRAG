@@ -12,9 +12,9 @@ from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMe
 from agent import Agent
 from models import AgentConfiguration, AgentResponse
 from functions import SearchVectorFunction
+import os
 import fsspec
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
-from services import History
 
 class Smart_Agent(Agent):
     """Smart agent that uses the pulls data from a vector database and uses the Azure OpenAI API to generate responses"""
@@ -25,11 +25,12 @@ class Smart_Agent(Agent):
             agent_configuration: AgentConfiguration,
             client: AzureOpenAI,
             search_vector_function: SearchVectorFunction,
-            history: History,
+            init_history: List[dict],
             fs: fsspec.AbstractFileSystem,
             max_run_per_question: int = 10,
             max_question_to_keep: int = 3,
-            max_question_with_detail_hist: int = 1
+            max_question_with_detail_hist: int = 1,
+            image_directory: str = "images",
     ) -> None:
         super().__init__(logger=logger, agent_configuration=agent_configuration)
 
@@ -39,23 +40,62 @@ class Smart_Agent(Agent):
         self.__max_question_with_detail_hist: int = max_question_with_detail_hist
         self.__functions_spec: List[ChatCompletionToolParam] = [
             tool.to_openai_tool() for tool in self._agent_configuration.tools]
-        self.__history: History = history
+        if len(init_history) >0: #initialize the conversation with the history
+            self._conversation = init_history
         self._functions_list = {
             "search": search_vector_function.search
         }
         self.__fs: fsspec.AbstractFileSystem = fs
+        self.__image_directory: str = image_directory
+    def clean_up_history(self, max_q_with_detail_hist=1, max_q_to_keep=2) -> None:
+        """Clean up the history"""
+
+        question_count=0
+        removal_indices=[]
+
+        for idx in range(len(self._conversation)-1, 0, -1):
+            message = dict(self._conversation[idx])
+
+            if message.get("role") == "user":
+                question_count +=1
+
+            if question_count>= max_q_with_detail_hist and question_count < max_q_to_keep:
+                if message.get("role") != "user" \
+                    and message.get("role") != "assistant" \
+                        and len(message.get("content") or []) == 0:
+                    removal_indices.append(idx)
+
+            if question_count >= max_q_to_keep:
+                removal_indices.append(idx)
+        # remove items with indices in removal_indices
+        for index in removal_indices:
+            del self._conversation[index]
+
+
+    def reset_history_to_last_question(self) -> None:
+        """Reset the history to the last question"""
+
+        
+        for i in range(len(self._conversation)-1, -1, -1):
+            message = dict(self._conversation[i])   
+            
+            if message.get("role") == "user":
+                break
+            
+            self._conversation.pop()
+
 
     def run(self, user_input: str | None, conversation=None, stream=False) -> AgentResponse:
-        if user_input is None:  # if no input return init message
+        if user_input is None or len(user_input)==0:  # if no input return init message
             return AgentResponse(conversation=self._conversation, response=self._conversation[1]["content"])
 
-        if conversation is not None:
+        if conversation is not None and len(conversation) > 0:
             self._conversation = conversation
 
         run_count = 0
 
         self._conversation.append({"role": "user", "content": user_input})
-        self.__history.clean_up_history(
+        self.clean_up_history(
             max_q_with_detail_hist=self.__max_question_with_detail_hist, max_q_to_keep=self.__max_question_to_keep)
 
         while True:
@@ -159,7 +199,7 @@ class Smart_Agent(Agent):
         search_function_response = []
 
         for item in function_response:
-            image_path = item['image_path']
+            image_path = os.path.join(self.__image_directory, item['image_path'])   
             related_content = item['related_content']
 
             image_file: str | bytes = self.__fs.read_bytes(path=image_path)

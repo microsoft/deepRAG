@@ -9,6 +9,13 @@ class History:
         """Constructor for History"""
         self.__session_id: str = session_id
         self.__cache: CacheProtocol = cache
+        cache_history = self.__cache.get(name=self.__session_id)
+
+        if cache_history is None:
+            return
+        
+        self.history = pickle.loads(base64.b64decode(s=cache_history))
+
 
     def set_history(self, history) -> None:
         """Set the history"""

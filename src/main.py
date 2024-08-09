@@ -1,12 +1,12 @@
 import fsspec
 from fsspec.utils import get_protocol
 from pathlib import Path
-from agents.smart_agent.smart_agent import Smart_Agent
-from models.settings import Settings
-from models.agent_response import AgentResponse
-from utils.smart_agent_factory import SmartAgentFactory
+from agents import Smart_Agent
+from models import Settings
+from models import AgentResponse
+from utils import SmartAgentFactory
 
-env_path: Path = Path('..') / '.env'
+env_path: Path = Path('.') / '.env'
 settings: Settings = Settings(_env_file=env_path) # type: ignore
 agent_path: str = settings.smart_agent_prompt_location
 protocol: str = get_protocol(url=agent_path)
