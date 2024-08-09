@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import yaml
 import fsspec
+from fsspec.utils import get_protocol
 from typing import LiteralString
 from streamlit_extras.add_vertical_space import add_vertical_space
 from plotly.graph_objects import Figure as PlotlyFigure
@@ -17,13 +18,12 @@ from models import (
     agent_configuration_from_dict,
     AgentResponse,
     Settings)
-import fsspec
-from fsspec.utils import get_protocol
 
 # Initialize smart agent with CODER1 persona
 settings: Settings = Settings(_env_file=".env")  # type: ignore
 protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
-fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
+fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol, storage_options=settings.__dict__)
+print("protocol is ", protocol)
 with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
     agent_config_data = yaml.safe_load(stream=file)
     agent_config: AgentConfiguration = agent_configuration_from_dict(
@@ -31,7 +31,7 @@ with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-
 
 session_id = str(object=uuid.uuid4())
 agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
-remoteAgent = RemoteRunnable(f"http://{settings.api_host}:{api_port}/deepRag")
+remoteAgent = RemoteRunnable(url=f"http://{settings.api_host}:{settings.api_port}/deepRag")
 
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application using LLM")
@@ -180,9 +180,10 @@ if user_input:
             if json_response:
                 for item in json_response:
                     if item != "overall_explanation":
-                        
-                        image_path: str = os.path.join(
-                            settings.smart_agent_image_path, item)
+                        path = settings.smart_agent_image_path
+                        protocol = get_protocol(url=path)
+                        print("protocol is ", protocol)
+                        image_path: str = os.path.join(path, item)
                         st.markdown(body=json_response[item])
                         st.image(image=image_path)
 

@@ -1,7 +1,21 @@
-from pydantic_settings import BaseSettings
+from typing import Tuple, Type
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict, DotEnvSettingsSource
 from pydantic import Field
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        return env_settings, dotenv_settings, file_secret_settings
+
     """Settings for the application"""
     openai_endpoint: str = Field(validation_alias='AZURE_OPENAI_ENDPOINT')
     openai_key: str = Field(validation_alias='AZURE_OPENAI_API_KEY')

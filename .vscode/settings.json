@@ -1,7 +1,7 @@
 {
     "python.globalModuleInstallation": true,
     "python.languageServer": "Pylance",
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/activate",
     "python.analysis.completeFunctionParens": true,
     "python.analysis.extraPaths": [
         "${workspaceFolder}/bin/python",
@@ -19,13 +19,5 @@
     "python.testing.pytestArgs": [
         "${workspaceFolder}/tests"
     ],
-    "python.analysis.typeCheckingMode": "standard"
-    "python.testing.unittestEnabled": false,
-    "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/.venv/bin",
-    ],
-    "python.testing.pytestArgs": [
-        "${workspaceFolder}/tests"
-    ],
-    "python.analysis.typeCheckingMode": "standard"
+    "python.analysis.typeCheckingMode": "standard",
 }

@@ -16,14 +16,12 @@
             "request": "launch",
             "module": "streamlit",
             "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
+            "envFile": "${workspaceFolder}/.env",
             "args": [
                 "run",
                 "${cwd}/src/app/app.py",
                 "--server.port",
-                "8000"
+                "5000"
             ]
         }
     ],

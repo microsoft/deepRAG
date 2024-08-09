@@ -19,6 +19,7 @@ functions = { path = "../functions", develop = true }
 agents = { path = "../agents", develop = true }
 distributedcache = { path = "../distributed_cache", develop = true }
 redis = "^5.0.8"
+fsspec = "^2024.6.1"
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

@@ -11,7 +11,6 @@ from models import AgentConfiguration, agent_configuration_from_dict
 from models import Settings
 from services import History
 from agents import Smart_Agent
-from redis.commands.core import BasicKeyCommands
 from redis.typing import KeyT, ResponseT, AbsExpiryT, ExpiryT, EncodableT
 
 class SmartAgentFactory:
@@ -57,5 +56,5 @@ class SmartAgentFactory:
             agent_configuration=agent_config,
             search_vector_function = search_vector_function,
             history = history,
-            fs=fs,
+            settings=settings,
         )
