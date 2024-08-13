@@ -5,7 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Server",
+            "name": "Api",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "main"
+        },
+        {
+            "name": "App",
             "type": "debugpy",
             "request": "launch",
             "module": "streamlit",
@@ -18,6 +24,15 @@
                 "${cwd}/src/app/app.py",
                 "--server.port",
                 "8000"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Server/Client",
+            "configurations": [
+                "App",
+                "Api"
             ]
         }
     ]

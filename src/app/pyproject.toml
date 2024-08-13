@@ -15,6 +15,7 @@ agents = { path = "../agents", develop = true }
 functions = { path = "../functions", develop = true }
 utils = { path = "../utils", develop = true }
 pydantic-settings = "^2.4.0"
+langserve = {extras = ["client"], version = "^0.2.2"}
 
 [tool.poetry.group.dev.dependencies]
 env = "^0.1.0"

@@ -12,17 +12,22 @@ from utils import SmartAgentFactory
 from agents import Smart_Agent
 from functions import SearchVectorFunction
 from logging import Logger
+import ast
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
+settings: Settings = Settings(_env_file=".env")  # type: ignore
 
-def deep_rag_search(question: str) -> Any | str | None:
+def deep_rag_search(input) -> Any | str | None:
+    question = input['question']
+    session_id = input['session_id']
     protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
     fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
-    session_id = str(object=uuid.uuid4())
     agent: Smart_Agent = SmartAgentFactory.create_smart_agent(
         fs=fs, settings=settings, session_id=session_id)
     agent_response: AgentResponse = agent.run(
         user_input=question, conversation=[], stream=False)
+    SmartAgentFactory.persist_history(smart_agent=agent, session_id=session_id,settings=settings)
+    
     return agent_response.response
 
 class Server:
@@ -32,13 +37,13 @@ class Server:
         add_routes(
             app=app,
             runnable= RunnableLambda(
-                func=lambda question: self.vector_rag_search(question=str(object=question))),
+                func=lambda input: self.vector_rag_search(input=input)),
             path="/vectorRAG",
         )
         add_routes(
             app=app,
             runnable=RunnablePassthrough() | RunnableLambda(
-                func=lambda question: deep_rag_search(question=str(object=question))),
+                func=lambda input: deep_rag_search(input=input)),
             path="/deepRAG",
         )
 
@@ -73,8 +78,12 @@ if __name__ == "__main__":
         search_client=search_client,
         client=openai_client,
         model=settings.openai_embedding_deployment,
-        image_directory=settings.smart_agent_image_path
+        image_directory=settings.smart_agent_image_path,
+        storage_account_key=settings.azure_storage_account_key,  
+        storage_account_name=settings.azure_storage_account_name,  
+        container_name=settings.azure_container_name  
+
     )
 
     server = Server(app=app, searchVectorFunction=search_vector_function)
-    uvicorn.run(app=server.app, host="localhost", port=8000)
+    uvicorn.run(app=server.app, host=settings.api_host, port=settings.api_port)
