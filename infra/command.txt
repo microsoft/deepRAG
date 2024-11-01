@@ -1,0 +1,6 @@
+az cosmosdb sql role definition list --resource-group data_engineering --account-name cosmosvector01
+
+az cosmosdb show --resource-group data_engineering --name cosmosvector01 --query "{id:id}"
+
+#note: need to use objecid found in enterprise application in entraid
+az cosmosdb sql role assignment create --resource-group data_engineering --account-name cosmosvector01 --role-definition-id /subscriptions/840b5c5c-3f4a-459a-94fc-6bad2a969f9d/resourceGroups/data_engineering/providers/Microsoft.DocumentDB/databaseAccounts/cosmosvector01/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002 --principal-id d80f7482-4d1e-41a1-9dfc-b1063dd4054d --scope "/subscriptions/840b5c5c-3f4a-459a-94fc-6bad2a969f9d/resourceGroups/data_engineering/providers/Microsoft.DocumentDB/databaseAccounts/cosmosvector01"
