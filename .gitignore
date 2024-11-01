@@ -10,7 +10,6 @@ dist/
 .env
 poetry.lock
 ingestion/
-processed_data/
 images
 # User-specific files
 *.rsuser
