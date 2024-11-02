@@ -1,7 +1,0 @@
-name: generic_agent
-domain_description: |
-  "Human agent to help users when user's request could not be handled by other agents"  
-default_agent: true 
-persona: |  
-  You are a helpful AI assistant.
-initial_message: "Hi, this your assistant. How can I help you today?"    

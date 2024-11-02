@@ -4,26 +4,39 @@ import requests
 import os  
 from dotenv import load_dotenv  
 from streamlit_extras.add_vertical_space import add_vertical_space  
-  
+import time
 # Load environment variables  
 load_dotenv()  
   
 # Set up Streamlit page  
 st.set_page_config(layout="wide", page_title="Chat Client", page_icon="💬")  
-def initialize_chat_session():
+def initialize_chat_session():  
     # Initialize session state  
-
-    # Make initial call to get the assistant's first message  
-    response = requests.post(  
-        f"http://{os.getenv('API_HOST')}:{os.getenv('API_PORT')}/chat/",  
-        json={"session_id": st.session_state['session_id']}  
-    )  
-    response_data = response.json()  
-    initial_message = response_data.get("response", "No response received.")  
-        
-    # Append initial assistant's response to history  
-    st.session_state['history'].append({"role": "assistant", "content": initial_message})  
-
+    max_retries = 3  # Maximum number of retry attempts  
+    retry_delay = 2  # Delay between retries in seconds  
+    attempt = 0  
+  
+    while attempt < max_retries:  
+        try:  
+            # Make initial call to get the assistant's first message  
+            response = requests.post(  
+                f"{os.getenv('AGENT_SERVICE_URL')}/chat/",  
+                json={"session_id": st.session_state['session_id']}  
+            )  
+            response.raise_for_status()  # Raise an error for bad HTTP status codes  
+            response_data = response.json()  
+            initial_message = response_data.get("response", "No response received.")  
+              
+            # Append initial assistant's response to history  
+            st.session_state['history'].append({"role": "assistant", "content": initial_message})  
+            break  # Exit the loop if successful  
+  
+        except requests.exceptions.RequestException as e:  
+            attempt += 1  
+            if attempt < max_retries:  
+                time.sleep(retry_delay)  
+            else:  
+                print(f"Attempt {attempt} failed: {e}. No more retries left.") 
 if 'history' not in st.session_state:  
     st.session_state['history'] = []  
 
@@ -43,8 +56,8 @@ with st.sidebar:
         st.session_state['session_id'] = str(uuid.uuid4()) 
         initialize_chat_session()
     st.markdown("### Sample Questions:")  
-    st.markdown("1. Can you help me with my flight booking?")  
-    st.markdown("2. Can you check my hotel reservation?")  
+    st.markdown("1. How can shippers monitor real time vehicle position in the software?")  
+    st.markdown("2. How can carriers monitor real time vehicle position in the software?")  
   
 # Chat input  
 user_input = st.chat_input("You:")  
@@ -66,7 +79,7 @@ if user_input:
   
     # Send user input to backend and get response  
     response = requests.post(  
-        f"http://{os.getenv('API_HOST')}:{os.getenv('API_PORT')}/chat/",  
+        f"{os.getenv('AGENT_SERVICE_URL')}/chat/",  
         json={"message": user_input, "session_id": st.session_state['session_id']}  
     )  
     response_data = response.json()  

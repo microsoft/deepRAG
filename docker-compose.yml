@@ -1,8 +1,8 @@
 services:  
-  python_service:  
+  agent_service:  
     build:  
       context: .  
-      dockerfile: Dockerfile.python_service  
+      dockerfile: Dockerfile.agent_service  
     environment:  
       - PORT=8000  
     ports:  
@@ -14,8 +14,8 @@ services:
       context: .  
       dockerfile: Dockerfile.streamlit_app  
     environment:  
-      - PYTHON_SERVICE_URL=http://python_service:8000  
+      - AGENT_SERVICE_URL=http://agent_service:8000  
     ports:  
       - "8501:8501"  
     depends_on:  
-      - python_service  
+      - agent_service  

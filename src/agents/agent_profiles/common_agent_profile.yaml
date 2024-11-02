@@ -1,15 +1,26 @@
-name: generic_agent
-domain_description: |
+name: generic_agent  
+domain_description: |  
   "A common set of tools for all agents"  
 tools:  
   - name: "get_help"  
-    description: "Whenever the conversation goes outside the defined scope, transfer the conversation to another agent.Do not say anything"  
+    description: "Whenever the conversation goes outside the defined scope, transfer the conversation to another agent. Do not say anything."  
     type: "function"  
     parameters:  
       type: "object"  
       properties:  
         user_request:  
           type: "string"  
-          description: "details of user's request"  
+          description: "Details of user's request."  
       required:  
         - user_request  
+  - name: "get_content_from_url"  
+    description: "Retrieve content from a given URL."  
+    type: "function"  
+    parameters:  
+      type: "object"  
+      properties:  
+        url:  
+          type: "string"  
+          description: "The URL to retrieve content from."  
+      required:  
+        - url  

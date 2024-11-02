@@ -118,6 +118,7 @@ class Smart_Agent():
         profile_file = f'{base_path}/{agent_name}_profile.yaml'
         with open(profile_file, 'r') as file:  
             profile = yaml.safe_load(file)  
+        self.domain_description = profile["domain_description"]
         common_profile_file = f'{base_path}/common_agent_profile.yaml'
         with open(common_profile_file, 'r') as file:
             common_profile = yaml.safe_load(file)
@@ -138,9 +139,6 @@ class Smart_Agent():
                 }}
             )
         for tool in common_profile.get('tools', []):  
-            if self.default_agent and tool['name']=="get_help":
-                continue      #default agent will handle everything (supposedly human) so it should not ask for help
-
             self.function_spec.append({        
                 "type": tool['type'],
                 "function":{  
@@ -150,11 +148,11 @@ class Smart_Agent():
             }})  
 
 
-
         #Create a dictionary of functions with name of function and the actual function object
 
 
         self.functions_list = self._create_functions_dict(profile["name"])  
+        print(f"{self.name}Functions list: ", self.functions_list)
         
     def run(self, user_input, conversation=None):
         if user_input is None: #if no input return init message
@@ -193,7 +191,7 @@ class Smart_Agent():
                         print()                                    
                         # verify function exists
                         if function_name not in self.functions_list:
-                            # raise Exception("Function " + function_name + " does not exist")
+                            raise Exception("Function " + function_name + " does not exist")
                             conversation.pop()
                             continue
                         function_to_call = self.functions_list[function_name]
@@ -201,10 +199,6 @@ class Smart_Agent():
                         # verify function has correct number of arguments
                         function_args = json.loads(tool_call.function.arguments)
 
-                        if self.check_args(function_to_call, function_args) is False:
-                            # raise Exception("Invalid number of arguments for function: " + function_name)
-                            conversation.pop()
-                            continue
 
                         
                         # print("beginning function call")

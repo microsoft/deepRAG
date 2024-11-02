@@ -6,9 +6,9 @@ from .smart_agent import Smart_Agent
 class Agent_Runner:  
     def __init__(self, session_state): 
         base_path = "src/agents/agent_profiles"  
-        agent_names = [f[:-13] for f in os.listdir(base_path) if f.endswith("_profile.yaml") and "common" not in f]  
-        print("agents:", agent_names)  
-        self.agents = [Smart_Agent(name, base_path) for name in agent_names]  
+        self.agent_names = [f[:-13] for f in os.listdir(base_path) if f.endswith("_profile.yaml") and "common" not in f]  
+        print("agents:", self.agent_names)  
+        self.agents = [Smart_Agent(name, base_path) for name in self.agent_names]  
         self.default_agent = next(agent for agent in self.agents if agent.default_agent)
         self.session_state = session_state  
         self.evaluator_engine = os.environ.get("AZURE_OPENAI_EVALUATOR_DEPLOYMENT")  
@@ -18,11 +18,12 @@ class Agent_Runner:
             azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")  
         )  
         self.active_agent = None  
+        self.agent_descriptions = "\n".join([f"{agent.name}: {agent.domain_description}" for agent in self.agents])  
+
   
-    def classify_intent(self, user_input, candidates):  
-        agent_descriptions = "Jenny: a general customer support agent, handling general questions\n\nMaya: a specialist support agent in Flight booking\n\nAnna: a specialist support agent in Hotel booking\n\n"  
-        prompt = f"Given the request [{user_input}], pick a name from [{', '.join(candidates)}]. Just output the name of the agent, no need to add any other text."  
-        messages = [{"role": "system", "content": "You are a helpful AI assistant to match requests with agents. Here are agents with the description of their responsibilities:\n\n" + agent_descriptions}, {"role": "user", "content": prompt}]  
+    def classify_intent(self, user_input):  
+        prompt = f"Given the request [{user_input}], pick a name from [{', '.join(self.agent_names)}]. Just output the name of the agent, no need to add any other text."  
+        messages = [{"role": "system", "content": "You are a helpful AI assistant to match requests with agents. Here are agents with the description of their responsibilities:\n\n" + self.agent_descriptions}, {"role": "user", "content": prompt}]  
           
         response = self.client.chat.completions.create(  
             model=self.evaluator_engine,  
@@ -35,7 +36,6 @@ class Agent_Runner:
         return response_message  
   
     def revaluate_agent_assignment(self, function_description):  
-        candidates = [agent.name for agent in self.agents]  
         count = 0  
         while True:  
             count += 1  
@@ -43,10 +43,10 @@ class Agent_Runner:
                 next_agent = self.default_agent
                 print("main agent keep refusing,assigned to designated default agent", next_agent.name)  
                 break  
-            next_agent = self.classify_intent(function_description, candidates)  
+            next_agent = self.classify_intent(function_description)  
             if next_agent == self.active_agent.name:  
                 continue  
-            if next_agent in candidates:  
+            if next_agent in self.agent_names:  
                 break  
         for agent in self.agents:  
             if next_agent == agent.name:  
