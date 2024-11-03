@@ -154,20 +154,23 @@ class Tool:
                 return extract_content_from_url(url, retries + 1)  # Retry with incremented retry count  
   
         def get_image_description(image_url, retries=0):  
-            max_retries = 2  
+            max_retries = 2
             try:  
                 response = self.openai_client.chat.completions.create(  
                     model=self.openai_processing_engine,  
                     messages=[  
                         {  
                             "role": "user",  
-                            "content": f"Describe this image: {image_url}"  
+                            "content": [  
+                                {"type": "text", "text": "Describe this image"},  
+                                {"type": "image_url", "image_url": {"url": image_url}}  
+                            ],  
                         }  
                     ],  
                     max_tokens=300  
                 )  
                 return response.choices[0].message.content.strip()  
-  
+        
             except Exception as e:  
                 if retries < max_retries:  
                     print(f"Failed to get image description for {image_url}: {e}. Retrying ({retries + 1}/{max_retries})...")  
@@ -175,8 +178,7 @@ class Tool:
                     return get_image_description(image_url, retries + 1)  
                 else:  
                     print(f"Max retries reached for {image_url}. Skipping.")  
-                    return f"[Description for {image_url} not available due to error.]"  
-  
+                    return f"[Description for {image_url} not available due to error.]"    
         def replace_image_urls_with_descriptions(extracted_content):  
             image_urls = re.findall(r'\!\[.*?\]\((https?://.*?\.(?:png|jpg|jpeg|gif)(?:\?.*?)?)\)', extracted_content)  
             for image_url in image_urls:  

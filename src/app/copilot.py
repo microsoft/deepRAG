@@ -56,9 +56,12 @@ with st.sidebar:
         st.session_state['session_id'] = str(uuid.uuid4()) 
         initialize_chat_session()
     st.markdown("### Sample Questions:")  
-    st.markdown("1. How can shippers monitor real time vehicle position in the software?")  
-    st.markdown("2. How can carriers monitor real time vehicle position in the software?")  
-  
+    
+    st.markdown("1. How does the consent management process work in the Visibility Control Center?")  
+    st.markdown("2. What are the detailed descriptions of each onboarding status for carriers?")  
+    st.markdown("3. How can I effectively expand my carrier network using the Visibility Hub?")  
+    st.markdown("4. What factors affect the visibility index and allocation rating, and how can I improve them?")  
+    st.markdown("5. What additional insights can be gained from the Onboarding Status Report, and how can it be utilized effectively?")
 # Chat input  
 user_input = st.chat_input("You:")  
   

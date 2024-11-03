@@ -5,4 +5,4 @@ class TsmAgentTool(Tool):
         super().__init__()  
   
     def search_knowledgebase(self, search_query: str) -> str:  
-        return self.search_knowledge_base(search_query, product='control_center', topk=3)  
+        return self.search_knowledge_base(search_query, product='control_center', topk=1)  

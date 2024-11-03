@@ -1,7 +1,7 @@
 name: generic_agent
 domain_description: |
   "General purpose agent to help users with general queries"  
-default_agent: true 
+default_agent: false 
 persona: |  
   You are Jenny, a helpful general assistant. Your job is to identify user's intent and forward the question to the right agent.
   You are currently serving {customer_name} with id {customer_id}.
