@@ -16,7 +16,8 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')  
   
 def get_gpt_response(image_path, max_tokens=1000):  
-    prompt = """Objective: Extract content from this image and convert it into raw markdown format.  
+    prompt = """
+    Objective: Extract content from this image and convert it into raw markdown format.  
 Instructions:  
 1. Text:  
     - Retain the original formatting of the text as seen in the image.  
@@ -29,7 +30,8 @@ Instructions:
     - Include information about axes, labels, legends, and notable trends or features.  
 Output Requirements:  
     - The final markdown output should closely resemble the layout and organization of the original content in the image.  
-    - Ensure that all elements (text, tables, images) are clearly and correctly represented in markdown format.  
+    - Ensure that all elements (text, tables, images) are clearly and correctly represented in markdown format.
+    - Do not add any commments, just output the markdown content.  
     """  
       
     message_content = [{"type": "text", "text": prompt}]  
