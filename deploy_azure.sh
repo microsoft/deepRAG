@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Variables
-RESOURCE_GROUP="rg-analytic"
+RESOURCE_GROUP="rg-deeprag"
 LOCATION="westus" # Change to your preferred location
 CONTAINER_REGISTRY="analyticassistant"
-CONTAINER_ENVIRONMENT="analytic-assistant-python-env"
-PYTHON_IMAGE="python_service:latest"
+CONTAINER_ENVIRONMENT="agent-service-env"
+AGENT_SERVICE_IMAGE="agent_service:latest"
 STREAMLIT_IMAGE="streamlit_app:latest"
 
 # Create a resource group
@@ -18,7 +18,7 @@ az acr create --resource-group $RESOURCE_GROUP --name $CONTAINER_REGISTRY --sku 
 az acr update -n $CONTAINER_REGISTRY --admin-enabled true
 
 # Build the Python service image
-az acr build --registry $CONTAINER_REGISTRY --image $PYTHON_IMAGE --file ./Dockerfile.python_service ./
+az acr build --registry $CONTAINER_REGISTRY --image $AGENT_SERVICE_IMAGE --file ./Dockerfile.agent_service ./
 
 # Build the Streamlit app image
 az acr build --registry $CONTAINER_REGISTRY --image $STREAMLIT_IMAGE --file ./Dockerfile.streamlit_app ./
@@ -27,12 +27,12 @@ az acr build --registry $CONTAINER_REGISTRY --image $STREAMLIT_IMAGE --file ./Do
 az containerapp env create --name $CONTAINER_ENVIRONMENT --resource-group $RESOURCE_GROUP --location $LOCATION
 az acr update -n $CONTAINER_REGISTRY --admin-enabled true
 
-# Deploy the analytic-assistant-python service and get its URL
-python_service_output=$(az containerapp create \
-  --name analytic-assistant-python \
+# Deploy the agent-service service and get its URL
+agent_service_output=$(az containerapp create \
+  --name agent-service \
   --resource-group $RESOURCE_GROUP \
   --environment $CONTAINER_ENVIRONMENT \
-  --image $CONTAINER_REGISTRY.azurecr.io/$PYTHON_IMAGE \
+  --image $CONTAINER_REGISTRY.azurecr.io/$AGENT_SERVICE_IMAGE \
   --min-replicas 1 --max-replicas 1 \
   --target-port 8000 \
   --ingress external \
@@ -41,17 +41,17 @@ python_service_output=$(az containerapp create \
   --output tsv)
 
 # Check if the deployment was successful and the URL was retrieved
-if [ -z "$python_service_output" ]; then
-  echo "Failed to retrieve the URL of the analytic-assistant-python service."
+if [ -z "$agent_service_output" ]; then
+  echo "Failed to retrieve the URL of the agent-service service."
   exit 1
 fi
 
-# Construct the PYTHON_SERVICE_URL
-PYTHON_SERVICE_URL="https://$python_service_output"
+# Construct the agent_service_URL
+agent_service_URL="https://$agent_service_output"
 
-# Deploy the analytic-assistant-fe service with the PYTHON_SERVICE_URL environment variable
+# Deploy the agent-fe service with the agent_service_URL environment variable
 fe_service_output=$(az containerapp create \
-  --name analytic-assistant-fe \
+  --name agent-fe \
   --resource-group $RESOURCE_GROUP \
   --environment $CONTAINER_ENVIRONMENT \
   --image $CONTAINER_REGISTRY.azurecr.io/$STREAMLIT_IMAGE \
@@ -59,14 +59,14 @@ fe_service_output=$(az containerapp create \
   --target-port 8501 \
   --ingress external \
   --registry-server $CONTAINER_REGISTRY.azurecr.io \
-  --env-vars PYTHON_SERVICE_URL=$PYTHON_SERVICE_URL \
+  --env-vars agent_service_URL=$agent_service_URL \
   --query properties.configuration.ingress.fqdn \
   --output tsv)
 
 # Check if the deployment was successful
 if [ -z "$fe_service_output" ]; then
-  echo "Failed to deploy analytic-assistant-fe."
+  echo "Failed to deploy agent-fe."
   exit 1
 else
-  echo "Successfully deployed analytic-assistant-fe with URL: http://$fe_service_output"
+  echo "Successfully deployed frontend service with URL: http://$fe_service_output"
 fi
