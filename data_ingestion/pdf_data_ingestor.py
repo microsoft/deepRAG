@@ -118,18 +118,36 @@ def process_pdf(pdf_file, block_size):
             json.dump({"markdown_content": result}, output_file)  
             output_file.write('\n')  
   
-    # Ingest each markdown content into CosmosDB  
-    for result in results:  
-        content_vector = get_embedding(result)  
-        document_id = str(uuid.uuid4())  
-        document = {  
-            "id": document_id,  
-            "user_id": "user_123",  # Default user ID  
-            "content_vector": content_vector,  
-            "content": result  
-        }  
-        cosmos_container_client.upsert_item(document)  
-  
+    def ingest_to_cosmosdb(results):  
+        max_concurrent_calls = 20  # Set this to your desired number of concurrent threads  
+    
+        # Define a function to upsert a document into CosmosDB  
+        def upsert_document(result):  
+            content_vector = get_embedding(result)  
+            document_id = str(uuid.uuid4())  
+            document = {  
+                "id": document_id,  
+                "user_id": "user_123",  # Default user ID  
+                "content_vector": content_vector,  
+                "content": result  
+            }  
+            cosmos_container_client.upsert_item(document)  
+    
+        # Use ThreadPoolExecutor to parallelize the ingestion  
+        with ThreadPoolExecutor(max_workers=max_concurrent_calls) as executor:  
+            # Submit tasks to the executor  
+            future_to_result = {executor.submit(upsert_document, result): result for result in results}  
+    
+            # Collect results as they complete  
+            for future in as_completed(future_to_result):  
+                result = future_to_result[future]  
+                try:  
+                    future.result()  # We don't need the result, just catching exceptions  
+                except Exception as exc:  
+                    print(f'CosmosDB ingestion generated an exception: {exc} for result {result}')  
+    
+    # Call the ingest_to_cosmosdb function with the results  
+    ingest_to_cosmosdb(results)  
     print(f'Processed {pdf_file} and saved output to {output_file_path}')  
   
 def get_embedding(text: str):  
