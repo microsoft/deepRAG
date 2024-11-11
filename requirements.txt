@@ -22,3 +22,4 @@ uvicorn==0.30.5
 azure-cosmos==4.7.0
 requests-html
 lxml_html_clean
+notion-client
