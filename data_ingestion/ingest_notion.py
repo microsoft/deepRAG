@@ -8,7 +8,9 @@ from typing import Any, Optional, Tuple, List
 from notion_client import AsyncClient, APIResponseError  
 from dotenv import load_dotenv  
 import concurrent.futures  
+import time
 from utils import extract_content_from_url, extract_title, get_image_description  
+from datetime import datetime  
   
 # Load environment variables  
 load_dotenv()  
@@ -414,7 +416,7 @@ def convert_database_block_to_html(property_title: str, block: dict[str, Any]) -
   
 def replace_image_urls_with_descriptions(content: str) -> str:  
     logger.debug("Replacing image URLs with descriptions")  
-    image_urls = re.findall(r'<img src=\'(https?://.*?\.(?:png|jpg|jpeg|gif)(?:\?.*?)?)\'', content)  
+    image_urls = re.findall(r'\[.*?\]\((https?://.*?\.(?:png|jpg|jpeg|gif)(?:\?.*?)?)\)', content)  
     with concurrent.futures.ThreadPoolExecutor() as executor:  
         image_descriptions = list(executor.map(get_image_description, image_urls))  
         for image_url, description in zip(image_urls, image_descriptions):  
@@ -427,40 +429,72 @@ def safe_get_content_as_string(content):
         return ""  
     return content  
   
-async def main():  
-    root_page_id = "0bc3d93e-d27e-48dd-a393-8ba52bfc93b9"  
+async def gather_notion_pages(root_collection_ids: List[str]):  
+    all_pages = []  
+    for root_page_id in root_collection_ids:  
+        try:  
+            logger.info(f"Fetching Notion pages for root page ID: {root_page_id}")  
+            # Fetch the Notion page and its child pages as HTML  
+            notion_pages = await get_notion_page_tree_as_html(root_page_id)  
+            all_pages.extend(notion_pages)  
+        except Exception as e:  
+            logger.error(f"An error occurred while fetching Notion pages for {root_page_id}: {e}")  
+    return all_pages  
+  
+async def process_notion_page(notion_page):  
     try:  
-        logger.info(f"Starting to fetch and process Notion pages for root page ID: {root_page_id}")  
-        # Fetch the Notion page and its child pages as HTML  
-        notion_pages = await get_notion_page_tree_as_html(root_page_id)  
+        logger.debug(f"Processing page ID: {notion_page['id']}")  
+        html_content = notion_page['html']  
+        markdown_content = safe_get_content_as_string(extract_content_from_url(html_data=html_content))  
+        markdown_content_no_images = safe_get_content_as_string(replace_image_urls_with_descriptions(markdown_content))  
   
-        processed_data = []  
-  
-        # Process each Notion page  
-        for notion_page in notion_pages:  
-            logger.debug(f"Processing page ID: {notion_page['id']}")  
-            html_content = notion_page['html']  
-            markdown_content = safe_get_content_as_string(extract_content_from_url(html_data=html_content))  
-            markdown_content_no_images = safe_get_content_as_string(replace_image_urls_with_descriptions(markdown_content))  
-  
-            # Add to processed data  
-            processed_data.append({  
-                "page_id": notion_page['id'],  
-                "title": notion_page['title'],  
-                "content": markdown_content_no_images  
-            })  
-  
-        # Write to JSONL file  
-        os.makedirs('../processed_data', exist_ok=True)  
-        output_file = '../processed_data/notion_content.jsonl'  
-        logger.info(f"Writing processed data to {output_file}")  
-        with open(output_file, 'w') as f:  
-            for entry in processed_data:  
-                json.dump(entry, f)  
-                f.write('\n')  
-  
+        return {  
+            "id": notion_page['id'], 
+            "url": notion_page['url'], 
+            "title": notion_page['title'],  
+            "content": markdown_content_no_images  
+        }  
     except Exception as e:  
-        logger.error(f"An error occurred while fetching the Notion page: {e}")  
+        logger.error(f"An error occurred while processing the Notion page: {e}")  
+        return None  
   
+async def ingest_notion(product, root_collection_ids: List[str],source='notion', concurrent_tasks=60, output_file='../processed_data/notion_content.jsonl') -> None:  
+    start_time = time.time()  
+  
+    # Step 1: Gather all pages from the root collection IDs  
+    all_pages = await gather_notion_pages(root_collection_ids)  
+  
+    # Step 2: Process pages in parallel  
+    semaphore = asyncio.Semaphore(concurrent_tasks)  
+  
+    async def sem_task(notion_page):  
+        async with semaphore:  
+            return await process_notion_page(notion_page)  
+  
+    tasks = [sem_task(notion_page) for notion_page in all_pages]  
+    processed_data = await asyncio.gather(*tasks)  
+  
+    # Filter out any None results from failed tasks  
+    processed_data = [data for data in processed_data if data is not None]  
+  
+    # Ensure the directory exists  
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)  
+  
+    # Append to the JSONL file  
+    with open(output_file, 'a') as f:  
+        for entry in processed_data:  
+            entry['source'] = source
+            entry['product'] = product
+            entry['timestamp'] = datetime.now().isoformat()
+    
+            json.dump(entry, f)  
+            f.write('\n')  
+  
+    logger.info(f"Appended processed data to {output_file}")  
+    end_time = time.time()  
+    logger.info(f"Total time taken: {end_time - start_time} seconds")  
+  
+# Run the main function  
 if __name__ == "__main__":  
-    asyncio.run(main())  
+    root_collection_ids = ["0bc3d93e-d27e-48dd-a393-8ba52bfc93b9"]  # Example list of root page IDs  
+    asyncio.run(ingest_notion('TF', root_collection_ids))  

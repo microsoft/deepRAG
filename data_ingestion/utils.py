@@ -15,6 +15,7 @@ from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv  
 from openai import AzureOpenAI  
   
+import tiktoken  
 
   
 # Load environment variables  
@@ -32,8 +33,6 @@ openai_client = AzureOpenAI(
     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")  
 )  
 
-# Load environment variables  
-load_dotenv()  
   
 # Retrieve environment variables for AAD authentication  
 aad_client_id = os.getenv("AAD_CLIENT_ID")  
@@ -86,7 +85,7 @@ def extract_content_from_url(url=None, html_data=None, retries=0):
         ]  
           
         response = openai_client.chat.completions.create(  
-            model=engine,  
+            model=processing_engine,  
             messages=messages,  
         )  
           
@@ -180,10 +179,28 @@ def stitch_screenshots(screenshot_folder, output_path):
     print(f"Stitched image saved as: {output_path}")  
 
 # Function to get embeddings  
-def get_embedding(text: str):  
-    text = text.replace("\n", " ")  
-    return openai_client.embeddings.create(input=[text], model=openai_emb_engine).data[0].embedding  
   
+def get_embedding(text: str, model_name: str = "gpt-3.5-turbo"):  
+    # Replace newlines with spaces  
+    text = text.replace("\n", " ")  
+      
+    # Initialize the tokenizer for the model  
+    tokenizer = tiktoken.encoding_for_model(model_name)  
+      
+    # Encode the text into tokens  
+    tokens = tokenizer.encode(text)  
+      
+    # Truncate tokens to ensure they're under 8100 tokens  
+    max_tokens = 8100  
+    if len(tokens) > max_tokens:  
+        tokens = tokens[:max_tokens]  
+      
+    # Decode tokens back to text  
+    truncated_text = tokenizer.decode(tokens)  
+      
+    return openai_client.embeddings.create(input=[truncated_text], model=openai_emb_engine).data[0].embedding  
+
+
 def ingest_data_to_cosmos(input_file_path):  
     # Read data from JSONL file  
     with open(input_file_path, 'r', encoding='utf-8') as file:  
@@ -204,9 +221,11 @@ def ingest_data_to_cosmos(input_file_path):
                 "url": record['url'],  # Add the URL  
                 "topic_vector": title_vector,  # Store title vector as 'topic_vector'  
                 "content_vector": content_vector,  # Store content vector as 'content_vector'  
-                "topic": record['title'],  # Add the title as 'topic'  
+                "title": record['title'],  # Add the title as 'topic'  
                 "content": record['content'],  # Add the content  
-                "product": "control_center"  # Add default value for 'product'  
+                "product": record['product'],  # Add default value for 'product'  
+                "source": record['source'],  # Add default value for 'source'
+                "timestamp": record['timestamp']  # Add the timestamp
             }  
               
             # Insert the document into CosmosDB  
