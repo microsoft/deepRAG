@@ -1,38 +1,23 @@
 import os  
 import json  
-from datetime import datetime  
-import aiohttp  
 import asyncio  
-import structlog  
+import logging  
+from datetime import datetime  
+from typing import Any, Optional, List  
+import aiohttp  
 from dotenv import load_dotenv  
-from typing import Any, Optional  
+from dataclasses import dataclass, asdict  
+from utils import extract_content_from_url, get_image_description  
+import concurrent.futures  
+import re
 
-import json
-
-from dataclasses import dataclass, asdict
-
-
-@dataclass
-class IntercomPage:
-    id: str
-    url: str
-    html: str
-    title: str
-    last_edited_time: str
-    parent_id: str
-
-    def to_dict(self) -> dict[str, str]:
-        return asdict(self)
-
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
-  
 # Load environment variables  
 load_dotenv()  
 secret = os.getenv("INTERCOM_TOKEN")  
   
 # Configure logger  
-logger = structlog.get_logger("intercom")  
+logging.basicConfig(level=logging.DEBUG)  
+logger = logging.getLogger(__name__)  
   
 # Define the root collection IDs  
 ROOT_COLLECTION_IDS = [  
@@ -40,30 +25,57 @@ ROOT_COLLECTION_IDS = [
     "5885750", "5913563", "2509158", "2509162", "2519539"  
 ]  
   
-async def get_intercom_html_content(collection_ids: list[str], secret: str) -> list[dict[str, Any]]:  
+@dataclass  
+class IntercomPage:  
+    id: str  
+    url: str  
+    html: str  
+    title: str  
+    last_edited_time: str  
+    parent_id: str  
+  
+    def to_dict(self) -> dict[str, str]:  
+        return asdict(self)  
+  
+    def to_json(self) -> str:  
+        return json.dumps(self.to_dict())  
+  
+async def get_intercom_html_content(collection_ids: List[str], secret: str) -> List[dict[str, Any]]:  
     """Fetches all Intercom pages and returns their HTML content."""  
     intercom_pages = await find_all_pages_for_collections(collection_ids, secret)  
-      
-    # Collect the HTML content and other metadata  
-    intercom_html_content = [  
-        {  
-            "id": intercom_page.id,  
-            "html": intercom_page.html,  
-            "title": intercom_page.title,  
-            "url": intercom_page.url,  
+  
+    # Collect the HTML content, convert to Markdown, and replace image URLs with descriptions  
+    intercom_html_content = []  
+    for page in intercom_pages:  
+        html_content = page.html  
+        markdown_content = extract_content_from_url(html_data=html_content)  
+        markdown_content_no_images = replace_image_urls_with_descriptions(markdown_content)  
+  
+        intercom_html_content.append({  
+            "id": page.id,  
+            "html": page.html,  
+            "markdown": markdown_content_no_images,  
+            "title": page.title,  
+            "url": page.url,  
             "timestamp": datetime.now().isoformat(),  
-        }  
-        for intercom_page in intercom_pages  
-    ]  
-      
+        })  
+  
     logger.info(  
-        "Collected HTML content from pages",  
-        collection_ids=collection_ids,  
-        size=len(intercom_html_content),  
+        "Collected HTML content from pages. Collection IDs: %s, Size: %d",  
+        collection_ids, len(intercom_html_content)  
     )  
     return intercom_html_content  
   
-async def find_all_pages_for_collections(collection_ids: list[str], secret: str) -> list[IntercomPage]:  
+def replace_image_urls_with_descriptions(content: str) -> str:  
+    logger.debug("Replacing image URLs with descriptions")  
+    image_urls = re.findall(r'<img src=\'(https?://.*?\.(?:png|jpg|jpeg|gif)(?:\?.*?)?)\'', content)  
+    with concurrent.futures.ThreadPoolExecutor() as executor:  
+        image_descriptions = list(executor.map(get_image_description, image_urls))  
+        for image_url, description in zip(image_urls, image_descriptions):  
+            content = content.replace(image_url, description)  
+    return content  
+  
+async def find_all_pages_for_collections(collection_ids: List[str], secret: str) -> List[IntercomPage]:  
     """Fetches all pages for a given list of collection parents."""  
     pages = await find_all_intercom_pages(secret)  
     collections = await find_all_intercom_collections(secret)  
@@ -78,10 +90,10 @@ async def find_all_pages_for_collections(collection_ids: list[str], secret: str)
     ]  
   
 async def find_all_child_intercom_collections(  
-    collection_ids: list[str],  
-    all_collections: list[dict[str, Any]],  
-    collections: Optional[list[dict[str, Any]]] = None,  
-) -> list[dict[str, Any]]:  
+    collection_ids: List[str],  
+    all_collections: List[dict[str, Any]],  
+    collections: Optional[List[dict[str, Any]]] = None,  
+) -> List[dict[str, Any]]:  
     """Fetches all child Intercom collections recursively."""  
     if collections is None:  
         collections = []  
@@ -97,7 +109,7 @@ async def find_all_child_intercom_collections(
         )  
     return collections  
   
-async def find_all_intercom_collections(secret: str) -> list[dict[str, Any]]:  
+async def find_all_intercom_collections(secret: str) -> List[dict[str, Any]]:  
     """Fetches all Intercom collections."""  
     page = 1  
     collections = []  
@@ -125,7 +137,7 @@ async def find_intercom_collections(page: int, secret: str) -> Any:
     except Exception as err:  
         raise ValueError(f"An error occurred: {err}")  
   
-async def find_all_intercom_pages(secret: str) -> list[IntercomPage]:  
+async def find_all_intercom_pages(secret: str) -> List[IntercomPage]:  
     """Fetches all Intercom pages."""  
     page = 1  
     pages = []  
@@ -176,7 +188,7 @@ async def main():
     html_content = await get_intercom_html_content(ROOT_COLLECTION_IDS, secret)  
       
     # Save the content to a JSONL file  
-    with open('intercom_pages.jsonl', 'w') as jsonl_file:  
+    with open('processed_data/intercom_pages.jsonl', 'w') as jsonl_file:  
         for page in html_content:  
             jsonl_file.write(json.dumps(page) + '\n')  
       
