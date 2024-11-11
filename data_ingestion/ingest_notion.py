@@ -452,7 +452,7 @@ async def main():
   
         # Write to JSONL file  
         os.makedirs('../processed_data', exist_ok=True)  
-        output_file = 'processed_data/notion_content.jsonl'  
+        output_file = '../processed_data/notion_content.jsonl'  
         logger.info(f"Writing processed data to {output_file}")  
         with open(output_file, 'w') as f:  
             for entry in processed_data:  
