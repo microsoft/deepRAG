@@ -26,7 +26,7 @@ session = HTMLSession()
 # Initialize Azure OpenAI client  
 engine = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")  
 processing_engine = os.getenv("AZURE_OPENAI_CHAT_MINI_DEPLOYMENT")  
-client = AzureOpenAI(  
+openai_client = AzureOpenAI(  
     api_key=os.environ.get("AZURE_OPENAI_API_KEY"),  
     api_version=os.environ.get("AZURE_OPENAI_API_VERSION"),  
     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")  
@@ -53,15 +53,9 @@ os.environ["AZURE_TENANT_ID"] = aad_tenant_id
   
 # Use DefaultAzureCredential for authentication  
 credential = DefaultAzureCredential()  
-client = CosmosClient(cosmos_uri, credential=credential)  
-cosmos_db_client = client.get_database_client(cosmos_db_name)  
+cosmos_client = CosmosClient(cosmos_uri, credential=credential)  
+cosmos_db_client = cosmos_client.get_database_client(cosmos_db_name)  
 cosmos_container_client = cosmos_db_client.get_container_client(container_name)  
-openai_client = AzureOpenAI(  
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),  
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")  
-)  
-  
 
   
 def extract_content_from_url(url=None, html_data=None, retries=0):  
@@ -91,7 +85,7 @@ def extract_content_from_url(url=None, html_data=None, retries=0):
             {"role": "user", "content": prompt}  
         ]  
           
-        response = client.chat.completions.create(  
+        response = openai_client.chat.completions.create(  
             model=engine,  
             messages=messages,  
         )  
@@ -112,7 +106,7 @@ def extract_title(content):
 def get_image_description(image_url, retries=0):  
     max_retries = 2  
     try:  
-        response = client.chat.completions.create(  
+        response = openai_client.chat.completions.create(  
             model=processing_engine,  
             messages=[  
                 {  
