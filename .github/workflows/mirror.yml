@@ -30,5 +30,6 @@ jobs:
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
           git fetch --all
           git config --global http.postBuffer 524288000
+          git repack -a -d --depth=250 --window=250
           git fsck --full
           GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push --mirror --force target
