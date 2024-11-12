@@ -1,0 +1,26 @@
+name: Mirror Repository
+
+on:
+  push:
+    branches:
+      - main  # Change this to the branch you want to mirror
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'Miguel Veloso'
+          git config --global user.email 'miguel_veloso@trimble.com'
+
+      - name: Mirror repository
+        env:
+          TARGET_REPO_PAT: ${{ secrets.TARGET_REPO_PAT }}
+        run: |
+          git remote add target https://$TARGET_REPO_PAT@github.com/trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
+          git push --mirror target
