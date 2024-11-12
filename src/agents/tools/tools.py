@@ -1,5 +1,6 @@
 import os  
-from azure.cosmos import CosmosClient
+from azure.cosmos import CosmosClient  
+from azure.identity import DefaultAzureCredential  
 from openai import AzureOpenAI  
 from dotenv import load_dotenv  
 from requests_html import HTMLSession  
@@ -8,19 +9,31 @@ import re
 import time  
 class Tool:  
     def __init__(self):  
-        load_dotenv()
-  
-        # Configure CosmosDB client with AAD authentication  
-        cosmos_uri = os.environ.get("COSMOS_URI")
-        cosmos_key = os.environ.get("COSMOS_KEY")
+        load_dotenv()            
         container_name = os.getenv("COSMOS_CONTAINER_NAME")  
         cosmos_db_name = os.getenv("COSMOS_DB_NAME")
-  
-        # Use DefaultAzureCredential for authentication
-        self.client = CosmosClient(cosmos_uri, cosmos_key)
+        cosmos_uri = os.environ.get("COSMOS_URI")      
+
+        if os.getenv("COSMOS_KEY"):
+            # Configure CosmosDB client with KEY authentication  
+            cosmos_key = os.environ.get("COSMOS_KEY")
+            self.client = CosmosClient(cosmos_uri, cosmos_key)
+        else:
+            # Retrieve environment variables for AAD authentication  
+            aad_client_id = os.getenv("AAD_CLIENT_ID")  
+            aad_client_secret = os.getenv("AAD_CLIENT_SECRET")  
+            aad_tenant_id = os.getenv("AAD_TENANT_ID")  
+            # Configure CosmosDB client with AAD authentication  
+            # Set up the DefaultAzureCredential with the client ID, client secret, and tenant ID  
+            os.environ["AZURE_CLIENT_ID"] = aad_client_id  
+            os.environ["AZURE_CLIENT_SECRET"] = aad_client_secret  
+            os.environ["AZURE_TENANT_ID"] = aad_tenant_id  
+            credential = DefaultAzureCredential()  
+            self.client = CosmosClient(cosmos_uri, credential=credential)  
+
         self.cosmos_db_client = self.client.get_database_client(cosmos_db_name)  
         self.cosmos_container_client = self.cosmos_db_client.get_container_client(container_name)  
-  
+
         self.openai_emb_engine = os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")  
         self.openai_client = AzureOpenAI(  
             api_key=os.getenv("AZURE_OPENAI_API_KEY"),  

@@ -19,8 +19,10 @@ class Agent_Runner:
         )  
         self.active_agent = None  
         self.agent_descriptions = "\n".join([f"{agent.name}: {agent.domain_description}" for agent in self.agents])  
-
-  
+        for agent in self.agents:
+            if 'agent_domains' in agent.init_history[0]['content']:
+                agent.init_history[0]['content']=agent.init_history[0]['content'].replace('agent_domains', self.agent_descriptions)
+                print("agent persona updated for", agent.name, agent.init_history[0]['content'])
     def classify_intent(self, user_input):  
         prompt = f"Given the request [{user_input}], pick a name from [{', '.join(self.agent_names)}]. Just output the name of the agent, no need to add any other text."  
         messages = [{"role": "system", "content": "You are a helpful AI assistant to match requests with agents. Here are agents with the description of their responsibilities:\n\n" + self.agent_descriptions}, {"role": "user", "content": prompt}]  
