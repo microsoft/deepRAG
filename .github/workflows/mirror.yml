@@ -28,4 +28,5 @@ jobs:
       - name: Mirror repository
         run: |
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
-          git push --mirror --force target
+          git config --global http.postBuffer 524288000  # Increase buffer size to 500MB
+          GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push --mirror --force target
