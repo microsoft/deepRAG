@@ -3,10 +3,11 @@ name: Mirror Repository
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to mirror
+      - main
 
 jobs:
   mirror:
+    if: github.repository == 'james-tn/multi-modal-rag'
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +30,4 @@ jobs:
         run: |
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
           git fetch --all
-          git config --global http.postBuffer 524288000
-          git repack -a -d --depth=250 --window=250
-          git fsck --full
           GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push --mirror --force target
