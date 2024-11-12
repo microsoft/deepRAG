@@ -28,4 +28,4 @@ jobs:
       - name: Mirror repository
         run: |
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
-          git push --mirror target
+          git push --mirror --force target
