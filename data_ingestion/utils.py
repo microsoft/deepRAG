@@ -32,27 +32,28 @@ openai_client = AzureOpenAI(
     api_version=os.environ.get("AZURE_OPENAI_API_VERSION"),  
     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")  
 )  
+openai_emb_engine = os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")  
 
-  
-# Retrieve environment variables for AAD authentication  
-aad_client_id = os.getenv("AAD_CLIENT_ID")  
-aad_client_secret = os.getenv("AAD_CLIENT_SECRET")  
-aad_tenant_id = os.getenv("AAD_TENANT_ID")  
-  
-# Configure CosmosDB client with AAD authentication  
 cosmos_uri = os.environ.get("COSMOS_URI")  
 container_name = os.getenv("COSMOS_CONTAINER_NAME")  
 cosmos_db_name = os.getenv("COSMOS_DB_NAME")  
-openai_emb_engine = os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")  
+if os.getenv("COSMOS_KEY"):
+    # Configure CosmosDB client with KEY authentication  
+    cosmos_key = os.environ.get("COSMOS_KEY")
+    cosmos_client = CosmosClient(cosmos_uri, cosmos_key)
+else:
+    # Retrieve environment variables for AAD authentication  
+    aad_client_id = os.getenv("AAD_CLIENT_ID")  
+    aad_client_secret = os.getenv("AAD_CLIENT_SECRET")  
+    aad_tenant_id = os.getenv("AAD_TENANT_ID")  
+    # Configure CosmosDB client with AAD authentication  
+    # Set up the DefaultAzureCredential with the client ID, client secret, and tenant ID  
+    os.environ["AZURE_CLIENT_ID"] = aad_client_id  
+    os.environ["AZURE_CLIENT_SECRET"] = aad_client_secret  
+    os.environ["AZURE_TENANT_ID"] = aad_tenant_id  
+    credential = DefaultAzureCredential()  
+    cosmos_client = CosmosClient(cosmos_uri, credential=credential)  
   
-# Set up the DefaultAzureCredential with the client ID, client secret, and tenant ID  
-os.environ["AZURE_CLIENT_ID"] = aad_client_id  
-os.environ["AZURE_CLIENT_SECRET"] = aad_client_secret  
-os.environ["AZURE_TENANT_ID"] = aad_tenant_id  
-  
-# Use DefaultAzureCredential for authentication  
-credential = DefaultAzureCredential()  
-cosmos_client = CosmosClient(cosmos_uri, credential=credential)  
 cosmos_db_client = cosmos_client.get_database_client(cosmos_db_name)  
 cosmos_container_client = cosmos_db_client.get_container_client(container_name)  
 
