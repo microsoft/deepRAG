@@ -28,6 +28,7 @@ jobs:
 
       - name: Mirror repository
         run: |
+          ls -lisa
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
           git fetch --all
           GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push --mirror --force target
