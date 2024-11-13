@@ -28,7 +28,11 @@ async def chat(request: Request):
     session_id = data.get("session_id", str(uuid.uuid4()))  
 
     response = agent_runner.run(message, session_id)  
-    return {"response": response, "session_id": session_id}  
+    return {"response": response, "session_id": session_id}
+
+@app.get("/status/ready")
+async def chat(request: Request):
+    return "OK"
           
 if __name__ == "__main__":  
     import uvicorn  
