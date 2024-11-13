@@ -7,7 +7,7 @@ on:
 
 jobs:
   mirror:
-    if: github.repository == 'james-tn/multi-modal-rag'
+    if: github.repository == 'james-tn/multi-modal-rag' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
