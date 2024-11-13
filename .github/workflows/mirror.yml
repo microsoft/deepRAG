@@ -7,7 +7,7 @@ on:
 
 jobs:
   mirror:
-    if: github.repository == 'james-tn/multi-modal-rag'
+    if: github.repository == 'james-tn/multi-modal-rag' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -30,4 +30,34 @@ jobs:
         run: |
           git remote add target git@github.com:trimble-transport/ttc-rainbows-end-customer-care-agent-service.git
           git fetch --all
-          GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push --mirror --force target
+          git push --mirror --force target
+  docker:
+    if: github.repository == 'trimble-transport/ttc-rainbows-end-customer-care-agent-service'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and publish Docker images
+        uses: trimble-transport/docker-build-push@v1
+        with:
+          acr-username: ${{ secrets.TTC_ACR_TOKEN_USERNAME }}
+          acr-password: ${{ secrets.TTC_ACR_TOKEN_PASSWORD }}
+          tag: ${{ github.sha }}
+          services: ttc-rainbows-end-customer-care/customer-care-product-agent:product_agent.Dockerfile
+          checkout: "false"
+          registry: trimbletransportationcloud.azurecr.io
+  deploy:
+    if: github.repository == 'trimble-transport/ttc-rainbows-end-customer-care-agent-service' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Deploy to Dev
+        uses: trimble-transport/gitops-deploy@v2
+        with:
+          services: |
+            ttc-rainbows-end-customer-care-agents
+          imageTag: ${{ github.sha }}
+          envs: dev,dev-eu-gwc
+          repo: ttc-rainbows-end-customer-care-deployments
+          private-key: ${{ secrets.TTC_GITOPS_DEPLOY_CERT }}
+          client-id: ${{ secrets.TTC_GITOPS_DEPLOY_ID }}
+          client-secret: ${{ secrets.TTC_GITOPS_DEPLOY_SECRET }}
