@@ -24,7 +24,7 @@ follow_up_instruction2: |
   Provide citations or references to the specific sections of the article that support your response.
   In the end, give recommmendations on follow-up questions that the customer might have.
 follow_up_instruction3: |
-  It seems there is sufficient information from the search result that can answer user's question, you should inform user, then try to offer alternative answers that might still be helpful to them.
+  It seems there is not sufficient information from the search result that can answer user's question, you should inform user, then try to offer alternative answers that might still be helpful to them.
 initial_message: "Hi, this your AI assistant. How can I help you today?"    
 tools:  
   - name: "search_knowledgebase"  
