@@ -20,6 +20,7 @@ fastapi==0.112.0
 pydantic==2.7.4
 uvicorn==0.30.5
 azure-cosmos==4.7.0
+azure-identity==1.19.0
 requests-html
 lxml_html_clean
 notion-client
