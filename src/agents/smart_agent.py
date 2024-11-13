@@ -138,7 +138,9 @@ class Smart_Agent():
             self.default_persona = self.base_instruction
         self.init_history =[{"role":"system", "content":self.default_persona}, {"role":"assistant", "content":profile["initial_message"]}]
         self.function_spec = []
+        
         for tool in profile.get('tools', []):
+            print("tool parameters: ", tool['parameters'])
             self.function_spec.append({        
                 "type": tool['type'], 
                 "function":{ 
@@ -167,8 +169,9 @@ class Smart_Agent():
         conversation.append({"role": "user", "content": user_input})
         request_help = False
         if len(self.function_spec)>0:
-            print("conversation : ", conversation)
+            
             while True:
+                print("conversation : ", conversation)
                 response = self.client.chat.completions.create(
                     model=self.engine, 
                     messages=conversation,

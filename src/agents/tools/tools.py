@@ -46,12 +46,13 @@ class Tool:
     def search_knowledge_base(self, question: str, product: str, topk: int = 3) -> str:  
         """Search the knowledge base using CosmosDB and return top-k results."""  
         print("question", question)  
+        print("product", product)
         query_embedding = self._get_embedding(question)  
   
         # Query the database for the most similar items based on content vector and filter by product  
         results = self.cosmos_container_client.query_items(  
             query=(  
-                'SELECT TOP @topk c.url, c.topic, c.content, '  
+                'SELECT TOP @topk c.url, c.title, c.content, '  
                 'VectorDistance(c.topic_vector, @embedding) AS Topic_SimilarityScore, '  
                 'VectorDistance(c.content_vector, @embedding) AS Content_SimilarityScore '  
                 'FROM c WHERE c.product = @product '  
@@ -66,7 +67,7 @@ class Tool:
         )  
   
         # Collect the results into a formatted string  
-        text_content = "\n".join(f"{result['url']}\n{result['topic']}\n{result['content']}" for result in results)  
+        text_content = "\n".join(f"{result['url']}\n{result['title']}\n{result['content']}" for result in results)  
         return text_content  
   
     def _get_embedding(self, text: str) -> list:  
