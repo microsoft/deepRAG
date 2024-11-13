@@ -63,10 +63,9 @@ class Agent_Runner:
             self.active_agent = next(agent for agent in self.agents if agent.name == active_agent_name)  
             conversation = session.get("conversation")  
             print("session found, active agent:", active_agent_name)
-            print("conversation:", conversation)
         else:  
             
-            self.active_agent = next(agent for agent in self.agents if agent.name == 'generic_agent') 
+            self.active_agent = self.default_agent 
             conversation = self.active_agent.init_history  
   
         get_help, conversation, assistant_response = self.active_agent.run(user_input=user_input, conversation=conversation)  

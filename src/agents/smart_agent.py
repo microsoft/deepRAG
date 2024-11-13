@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import inspect  
 import yaml
 import importlib  
+import numpy as np
 
 MAX_ERROR_RUN = 3  
 MAX_RUN_PER_QUESTION = 10  
@@ -127,7 +128,15 @@ class Smart_Agent():
             print("Default agent is set to ", self.name)
         else:
             self.default_agent = False
-        self.init_history =[{"role":"system", "content":profile["persona"].format(customer_name =user_profile['name'], customer_id=user_profile['customer_id'])}, {"role":"assistant", "content":profile["initial_message"]}]
+        self.follow_up_instruction1 = profile.get("follow_up_instruction1")
+        self.follow_up_instruction2 = profile.get("follow_up_instruction2")
+        self.follow_up_instruction3 = profile.get("follow_up_instruction3")
+        self.base_instruction =profile["persona"].format(customer_name =user_profile['name'], customer_id=user_profile['customer_id'])
+        if self.follow_up_instruction1:
+            self.default_persona = self.base_instruction+"\n" + self.follow_up_instruction1
+        else:
+            self.default_persona = self.base_instruction
+        self.init_history =[{"role":"system", "content":self.default_persona}, {"role":"assistant", "content":profile["initial_message"]}]
         self.function_spec = []
         for tool in profile.get('tools', []):
             self.function_spec.append({        
@@ -148,28 +157,24 @@ class Smart_Agent():
             }})  
 
 
-        #Create a dictionary of functions with name of function and the actual function object
-
-
         self.functions_list = self._create_functions_dict(profile["name"])  
-        print(f"{self.name}Functions list: ", self.functions_list)
         
     def run(self, user_input, conversation=None):
         if user_input is None: #if no input return init message
-            print("1st request, return init message")
             return False, self.init_history, self.init_history[1]["content"]
         if conversation is None: #if no history return init message
             conversation = self.init_history.copy()
         conversation.append({"role": "user", "content": user_input})
         request_help = False
         if len(self.function_spec)>0:
+            print("conversation : ", conversation)
             while True:
-
                 response = self.client.chat.completions.create(
                     model=self.engine, 
                     messages=conversation,
                 tools=self.function_spec,
                 tool_choice='auto',
+                logprobs=True,
 
                 )
                 
@@ -192,8 +197,6 @@ class Smart_Agent():
                         # verify function exists
                         if function_name not in self.functions_list:
                             raise Exception("Function " + function_name + " does not exist")
-                            conversation.pop()
-                            continue
                         function_to_call = self.functions_list[function_name]
                         
                         # verify function has correct number of arguments
@@ -229,6 +232,24 @@ class Smart_Agent():
 
                     continue
                 else:
+                    
+                    if response_message.content == "True" or response_message.content == "False":
+                        logprob = response.choices[0].logprobs.content[0]
+                        logprob =np.round(np.exp(logprob.logprob)*100,2)
+                        hallucination_flag = logprob < float(os.getenv("SUFFICIENT_CONTEXT_SCORE_THRESHOLD"))
+                        if response_message.content == "True" and not hallucination_flag:
+                            #update system message to remove the analyze instruction so that LLM can generate the answer without analyzing again
+                            conversation[0]['content'] = self.base_instruction 
+                            advisor_message = {"role": "user", "content": self.follow_up_instruction2}
+                            print("good context, proceed to generation answer")
+                        else:
+                            print("not sufficient context, proceed to provide alternative answer")
+
+                            advisor_message = {"role": "user", "content": self.follow_up_instruction3}
+                        conversation.append(advisor_message)
+                        continue
+
+
                     break #if no function call break out of loop as this indicates that the agent finished the research and is ready to respond to the user
         else:
             response = self.client.chat.completions.create(
@@ -238,6 +259,12 @@ class Smart_Agent():
             response_message = response.choices[0].message
 
         conversation.append(response_message)
+        conversation[0]['content'] = self.default_persona #after answering the question, reset the system message to the default persona so that the self-review can be activated 
+        # remove conversation where the content is either self.follow_up_instruction2 or self.follow_up_instruction3
+        for idx, message in enumerate(conversation):
+            message = dict(message)
+            if message["content"] == self.follow_up_instruction2 or message["content"] == self.follow_up_instruction3:
+                conversation.pop(idx)
         assistant_response = response_message.content
 
         return request_help, conversation, assistant_response
