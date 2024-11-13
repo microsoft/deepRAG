@@ -240,14 +240,13 @@ class Smart_Agent():
                         logprob = response.choices[0].logprobs.content[0]
                         logprob =np.round(np.exp(logprob.logprob)*100,2)
                         hallucination_flag = logprob < float(os.getenv("SUFFICIENT_CONTEXT_SCORE_THRESHOLD"))
+                        conversation[0]['content'] = self.base_instruction 
                         if response_message.content == "True" and not hallucination_flag:
                             #update system message to remove the analyze instruction so that LLM can generate the answer without analyzing again
-                            conversation[0]['content'] = self.base_instruction 
                             advisor_message = {"role": "user", "content": self.follow_up_instruction2}
                             print("good context, proceed to generation answer")
                         else:
                             print("not sufficient context, proceed to provide alternative answer")
-
                             advisor_message = {"role": "user", "content": self.follow_up_instruction3}
                         conversation.append(advisor_message)
                         continue
