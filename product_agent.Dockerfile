@@ -10,4 +10,6 @@ COPY src src
 COPY processed_data processed_data
 COPY .env.template .env
 
+EXPOSE 8080
+
 CMD ["uvicorn", "src.api.agent_service:app", "--host", "0.0.0.0", "--port", "8000"]
