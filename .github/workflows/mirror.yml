@@ -54,7 +54,7 @@ jobs:
         uses: trimble-transport/gitops-deploy@v2
         with:
           services: |
-            ttc-rainbows-end-customer-care-agents
+            ttc-rainbows-end-customer-care-product-agent
           imageTag: ${{ github.sha }}
           envs: dev,dev-eu-gwc
           repo: ttc-rainbows-end-customer-care-deployments
@@ -84,7 +84,7 @@ jobs:
         uses: trimble-transport/gitops-deploy@v2
         with:
           services: |
-            ttc-rainbows-end-customer-care-agents
+            ttc-rainbows-end-customer-care-product-chat
           imageTag: ${{ github.sha }}
           envs: dev,dev-eu-gwc
           repo: ttc-rainbows-end-customer-care-deployments
