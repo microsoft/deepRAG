@@ -14,6 +14,7 @@ from azure.cosmos import CosmosClient
 from azure.identity import DefaultAzureCredential  
 from dotenv import load_dotenv  
 from openai import AzureOpenAI  
+from tenacity import retry, wait_random_exponential, stop_after_attempt  
   
 import tiktoken  
 
@@ -57,7 +58,7 @@ else:
 cosmos_db_client = cosmos_client.get_database_client(cosmos_db_name)  
 cosmos_container_client = cosmos_db_client.get_container_client(container_name)  
 
-  
+@retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6)) 
 def extract_content_from_url(url=None, html_data=None, retries=0):  
     if retries > 1:  
         print(f"Max retries reached for {url}. Skipping.")  
@@ -102,7 +103,7 @@ def extract_title(content):
     if title_match:  
         return title_match.group(1).strip()  
     return "Untitled"  
-  
+@retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6)) 
 def get_image_description(image_url, retries=0):  
     max_retries = 2  
     try:  

@@ -25,3 +25,4 @@ requests-html
 lxml_html_clean
 notion-client
 tiktoken
+tenacity==9.0.0
