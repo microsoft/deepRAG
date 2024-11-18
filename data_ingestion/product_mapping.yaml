@@ -1,67 +1,75 @@
-products:  
-  - product_name: "Time Slot Management"  
-    acronyms: ["TSM"]  
-    data_source: "online_help"  
-    root_pages: []  
-  
-  - product_name: "Transport Assignment"  
-    acronyms: ["TA"]  
-    data_source: "online_help"  
-    root_pages: []  
-  
-  - product_name: "Freight Procurement"  
-    acronyms: ["FP"]  
-    data_source: "online_help"  
-    root_pages: []  
-  
-  - product_name: "Road Visibility"  
-    acronyms: ["RTV"]  
-    data_source: "intercom"  
-    root_pages: ["6014082", "5922241", "6023034", "5913544", "5885750", "5913563", "2509158", "2509162", "2519539"]  
-  
-  - product_name: "Ocean Visibility"  
-    acronyms: ["OVE"]  
-    data_source: "intercom"  
-    root_pages: ["6385739", "8372415"]  
-  
-  - product_name: "Time Slot Management for Retailers"  
-    acronyms: ["TSMR"]  
-    data_source: "online_help"  
-    root_pages: []  
-  
-  - product_name: "Real Time Yard Management"  
-    acronyms: ["RTYM"]  
-    data_source: "intercom"  
-    root_pages: ["7849468"]  
-  
-  - product_name: "Rate Management"  
-    acronyms: ["RM"]  
-    data_source: "notion"  
-    root_pages: ["0bc3d93e-d27e-48dd-a393-8ba52bfc93b9"]  
-  
-  - product_name: "My Transporeon"  
-    acronyms: ["TPA", "TP Admin", "TPW", "TP Web"]  
-    data_source: "online_help"  
-    root_pages: []  
-  
-  - product_name: "Transport Operations"  
-    acronyms: ["TOPS"]  
-    data_source: ["intercom", "notion"]  
-    root_pages:  
-      intercom: ["1938365", "2238047", "1833546", "2948818", "3135230", "2711561", "3119354", "3447004"]  
-      notion: ["12fc1b3d-d256-808b-a765-c756cd8a2853"]  
-  
-  - product_name: "Slot Booking"  
-    acronyms: ["SB"]  
-    data_source: "intercom"  
-    root_pages: ["9576932"]  
-  
-  - product_name: "Digital Transport Documents"  
-    acronyms: ["DTD"]  
-    data_source: "intercom"  
-    root_pages: ["4013500"]  
-  
-  - product_name: "Task Flow"  
-    acronyms: ["TF"]  
-    data_source: "notion"  
-    root_pages: ["4885f6b6-6102-4769-abc4-0e33f0510efb"]  
+products:
+  - product_name: "Time Slot Management"
+    acronyms: [ "TSM" ]
+    data_source: "online_help"
+    root_pages: [ ]
+
+  - product_name: "Transport Assignment"
+    acronyms: [ "TA" ]
+    data_source: "online_help"
+    root_pages: [ ]
+
+  - product_name: "Freight Procurement"
+    acronyms: [ "FP" ]
+    data_source: "online_help"
+    root_pages: [ ]
+
+  - product_name: "Road Visibility"
+    acronyms: [ "RTV" ]
+    data_source: "intercom"
+    root_pages: [ "6014082", "5922241", "6023034", "5913544", "5885750", "5913563", "2509158", "2509162", "2519539" ]
+    intercom_secret_key: "SIXFOLD_INTERCOM_SECRET"
+
+  - product_name: "Ocean Visibility"
+    acronyms: [ "OVE" ]
+    data_source: "intercom"
+    root_pages: [ "6385739", "8372415" ]
+    intercom_secret_key: "SIXFOLD_INTERCOM_SECRET"
+
+  - product_name: "Time Slot Management for Retailers"
+    acronyms: [ "TSMR" ]
+    data_source: "online_help"
+    root_pages: [ ]
+
+  - product_name: "Real Time Yard Management"
+    acronyms: [ "RTYM" ]
+    data_source: "intercom"
+    root_pages: [ "7849468" ]
+    intercom_secret_key: "TOPS_INTERCOM_SECRET"
+
+  - product_name: "Rate Management"
+    acronyms: [ "RM" ]
+    data_source: "notion"
+    # root_pages: [ "0bc3d93e-d27e-48dd-a393-8ba52bfc93b9" ]
+    notion: []
+
+  - product_name: "My Transporeon"
+    acronyms: [ "TPA", "TP Admin", "TPW", "TP Web" ]
+    data_source: "online_help"
+    root_pages: [ ]
+
+  - product_name: "Transport Operations"
+    acronyms: [ "TOPS" ]
+    data_source: [ "intercom", "notion" ]
+    root_pages:
+      intercom: [ "1938365", "2238047", "1833546", "2948818", "3135230", "2711561", "3119354", "3447004" ]
+      # notion: [ "12fc1b3d-d256-808b-a765-c756cd8a2853" ]
+      notion: [ ]
+    intercom_secret_key: "TOPS_INTERCOM_SECRET"
+
+  - product_name: "Slot Booking"
+    acronyms: [ "SB" ]
+    data_source: "intercom"
+    root_pages: [ "9576932" ]
+
+  - product_name: "Digital Transport Documents"
+    acronyms: [ "DTD" ]
+    data_source: "intercom"
+    root_pages: [ "4013500" ]
+    intercom_secret_key: "TOPS_INTERCOM_SECRET"
+
+  - product_name: "Task Flow"
+    acronyms: [ "TF" ]
+    data_source: "notion"
+    # root_pages: [ "4885f6b6-6102-4769-abc4-0e33f0510efb" ]
+    notion: [ ]

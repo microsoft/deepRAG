@@ -9,9 +9,10 @@ from notion_client import AsyncClient, APIResponseError
 from dotenv import load_dotenv  
 import concurrent.futures  
 import time
-from utils import extract_content_from_url, extract_title, get_image_description  
-from datetime import datetime  
-  
+from datetime import datetime
+
+from data_ingestion.utils import get_image_description, extract_content_from_url
+
 # Load environment variables  
 load_dotenv()  
   
@@ -418,7 +419,7 @@ def replace_image_urls_with_descriptions(content: str) -> str:
     logger.debug("Replacing image URLs with descriptions")  
     image_urls = re.findall(r'\[.*?\]\((https?://.*?\.(?:png|jpg|jpeg|gif)(?:\?.*?)?)\)', content)  
     with concurrent.futures.ThreadPoolExecutor() as executor:  
-        image_descriptions = list(executor.map(get_image_description, image_urls))  
+        image_descriptions = list(executor.map(get_image_description, image_urls))
         for image_url, description in zip(image_urls, image_descriptions):  
             content = content.replace(image_url, description)  
     return content  
