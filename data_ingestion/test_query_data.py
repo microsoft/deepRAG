@@ -48,14 +48,27 @@ query_text = "how to monitor your supply chain in real time"
 # Get embedding for the query  
 query_embedding = get_embedding(query_text)  
   
+# # Query the database for the most similar items based on title vector  
+# results = cosmos_container_client.query_items(  
+#     query='SELECT TOP 3 c.url, c.topic, c.content, VectorDistance(c.topic_vector, @embedding) AS Topic_SimilarityScore,VectorDistance(c.content_vector, @embedding) AS Content_SimilarityScore FROM c ORDER BY VectorDistance(c.content_vector, @embedding)' ,  
+#     parameters=[  
+#         {"name": "@embedding", "value": query_embedding}  
+#     ],  
+#     enable_cross_partition_query=True  
+# )  
+
 # Query the database for the most similar items based on title vector  
-results = cosmos_container_client.query_items(  
-    query='SELECT TOP 3 c.url, c.topic, c.content, VectorDistance(c.topic_vector, @embedding) AS Topic_SimilarityScore,VectorDistance(c.content_vector, @embedding) AS Content_SimilarityScore FROM c ORDER BY VectorDistance(c.content_vector, @embedding)' ,  
-    parameters=[  
-        {"name": "@embedding", "value": query_embedding}  
-    ],  
+results = cosmos_container_client.query_items( 
+    query = """
+SELECT TOP 10 *
+FROM c WHERE FullTextContains(c.topic, "bicycle")
+
+""" ,
     enable_cross_partition_query=True  
-)  
+
+
+)
+
 for result in results:
     print(result)
 
