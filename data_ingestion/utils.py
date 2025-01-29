@@ -4,6 +4,7 @@ from openai import AzureOpenAI
 from selenium import webdriver  
 from PIL import Image  
 from selenium.webdriver.chrome.options import Options  
+import logging
 import time  
 import os  
 import re  
@@ -15,15 +16,21 @@ from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv  
 from openai import AzureOpenAI  
 from tenacity import retry, wait_random_exponential, stop_after_attempt  
-  
+import concurrent.futures 
 import tiktoken  
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
   
 # Load environment variables  
 load_dotenv()  
   
 # Initialize HTML session  
 session = HTMLSession()  
+# Set cookies for the session  
+session.cookies.set('tpsso', '22KF48BpzsS8x0EDY4R5rtVx4KoVC01r2ClJDyWlri1olGpzV4mv0R14WqwKxfys', domain='.transporeon.com')  
+  
+# Make a request to the URL  
   
 # Initialize Azure OpenAI client  
 engine = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")  
@@ -234,3 +241,21 @@ def ingest_data_to_cosmos(input_file_path):
             cosmos_container_client.upsert_item(document)  
   
     print("Data processing and insertion completed.")  
+def process_page(url):
+    """Processes a single page, converting its content to Markdown and replacing image URLs."""
+    markdown_content = extract_content_from_url(url=url)
+    markdown_content_no_images = replace_image_urls_with_descriptions(markdown_content)
+    return markdown_content_no_images
+
+def replace_image_urls_with_descriptions(content: str) -> str:
+    logger.debug("Replacing image URLs with descriptions")
+    image_urls = re.findall(r'\[.*?\]\((https?://.*?\.(?:png|jpg|jpeg)(?:\?.*?)?)\)', content)
+
+    print("Image URLs: ", image_urls)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        image_descriptions = list(executor.map(get_image_description, image_urls))
+        print("Image descriptions: ", image_descriptions)
+        for image_url, description in zip(image_urls, image_descriptions):
+            content = content.replace(image_url, description)
+    return content
+
