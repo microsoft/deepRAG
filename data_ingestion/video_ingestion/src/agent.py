@@ -235,7 +235,7 @@ def get_frames_from_video(video_path, output_folder, max_frames_per_scene=30, ma
     duration = total_frames / fps  # Total duration of the video in seconds  
   
     # Detect scenes using HistogramDetector  
-    content_detector = ContentDetector(threshold=22)  # You can use ContentDetector for more precise detection  
+    content_detector = ContentDetector(threshold=18)  # You can use ContentDetector for more precise detection  
     scenes = detect(video_path, content_detector)  
     print(f"Number of scenes detected: {len(scenes)}")  
   
