@@ -1,2 +1,3 @@
 moviepy
 pydub
+azure-cognitiveservices-speech  

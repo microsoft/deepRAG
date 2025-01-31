@@ -1,5 +1,5 @@
 import streamlit as st  
-from agent import process_images_from_folder, load_file_content, get_frames_from_video  
+from agent import extract_and_split_audio, load_file_content, get_frames_from_video,process_frames_and_audio  
 import tempfile  
 import os  
 import re  
@@ -37,61 +37,43 @@ def save_report_as_pdf(report_html, output_path):
   
 # Main function for Streamlit app  
 def main():  
-    # Update the title and description for a generic summary generator  
-    st.title("Video and Image Summary Generator")  
-    st.write(  
-        "Upload a video or a set of images, and this app will generate a comprehensive summary "  
-        "of the content. The summary will be created in batches for large inputs, and you can download it as a PDF."  
-    )  
+    st.title("Video Summary Generator with Audio Transcription")  
+    st.write("Upload a video to generate a comprehensive summary using both frames and audio transcription.")  
   
-    # Load the generic template for generating summaries  
-    template_content = load_file_content("template.md")  # Ensure template.md is generic  
   
-    # Allow users to upload files  
-    uploaded_files = st.file_uploader(  
-        "Upload Images or Video",   
-        accept_multiple_files=True,   
-        type=["png", "jpg", "jpeg", "mp4", "avi", "mov"]  
-    )  
+    uploaded_file = st.file_uploader("Upload Video", type=["mp4", "avi", "mov"])  
   
-    if uploaded_files:  
+    if uploaded_file:  
         with tempfile.TemporaryDirectory() as temp_dir:  
-            image_file_paths = []  
+            video_path = os.path.join(temp_dir, uploaded_file.name)  
+            with open(video_path, "wb") as f:  
+                f.write(uploaded_file.getbuffer())  
   
-            # Process each uploaded file  
-            for uploaded_file in uploaded_files:  
-                file_path = os.path.join(temp_dir, uploaded_file.name)  
-                with open(file_path, "wb") as f:  
-                    f.write(uploaded_file.getbuffer())  
+            st.text(f"Processing video: {uploaded_file.name}...")  
   
-                if uploaded_file.name.lower().endswith(('.mp4', '.avi', '.mov')):  # Process video files  
-                    st.text(f"Processing video: {uploaded_file.name}...")  
-                    frame_paths = get_frames_from_video(file_path, temp_dir)  
-                    image_file_paths.extend(frame_paths)  
-                else:  # Collect image files  
-                    image_file_paths.append(file_path)  
+            # Extract frames and timestamps  
+            frame_timestamps = get_frames_from_video(video_path, temp_dir)  
   
-            if image_file_paths:  
-                st.text("Processing images...")  
-                # Generate summary report using the updated function  
-                report = process_images_from_folder(temp_dir, template_content)  
-                report_html = markdown_insert_images(report)  
+            # Transcribe and align audio with frames  
+            transcriptions = extract_and_split_audio(video_path, frame_timestamps)  
   
-                # Display the report in the app  
-                with st.container():  
-                    st.markdown(report_html, unsafe_allow_html=True)  
+            # Generate summary (transcriptions are aligned with frame batches)  
+            report = process_frames_and_audio(frame_timestamps, transcriptions)  
+            report_html = markdown_insert_images(report)  
   
-                # Save the report as a PDF and provide a download option  
-                pdf_output_path = os.path.join(temp_dir, "summary_report.pdf")  
-                save_report_as_pdf(report_html, pdf_output_path)  
+            # Display the report  
+            st.markdown(report_html, unsafe_allow_html=True)  
   
-                with open(pdf_output_path, "rb") as pdf_file:  
-                    st.download_button(  
-                        "Download Summary Report as PDF",   
-                        data=pdf_file,   
-                        file_name="summary_report.pdf",   
-                        mime="application/pdf"  
-                    )  
+            # Save as PDF  
+            pdf_output_path = os.path.join(temp_dir, "summary_report.pdf")  
+            save_report_as_pdf(report_html, pdf_output_path)  
   
+            with open(pdf_output_path, "rb") as pdf_file:  
+                st.download_button(  
+                    "Download Summary Report as PDF",  
+                    data=pdf_file,  
+                    file_name="summary_report.pdf",  
+                    mime="application/pdf"  
+                )    
 if __name__ == "__main__":  
     main()  
