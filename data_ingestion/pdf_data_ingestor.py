@@ -67,7 +67,7 @@ def process_page_block(args):
       
     for page_num in range(start_page, end_page):  
         page = pdf_document.load_page(page_num)  
-        pix = page.get_pixmap()  
+        pix = page.get_pixmap(dpi=150)  
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)  
         img_filename = f'page_{page_num + 1}.png'  
         img_path = os.path.join(pdf_output_folder, img_filename)  
@@ -187,8 +187,8 @@ if __name__ == "__main__":
   
     openai_emb_engine = os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT")  
   
-    input_folder = 'data_ingestion/input_data'  
-    output_folder = 'processed_data/pdf_images'  
+    input_folder = 'data_ingestion/pdf_input_data'  
+    output_folder = 'data_ingestion/processed_data/pdf_images'  
     os.makedirs(output_folder, exist_ok=True)  
   
     start_time = time.time()  
