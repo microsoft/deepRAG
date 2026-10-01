@@ -1,4 +1,4 @@
-import uuid
+import httpx
 import streamlit as st
 import os
 import json
@@ -30,13 +30,19 @@ with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-
     agent_config: AgentConfiguration = agent_configuration_from_dict(
         data=agent_config_data)
 
+api_base_url: str = f"http://{settings.api_host}:{settings.api_port}"
+api_headers: dict[str, str] = {"X-API-Key": settings.api_key}
+
 if 'session_id' in st.session_state:
     session_id= st.session_state['session_id']
 else:
-    session_id = str(object=uuid.uuid4())
+    # Session tokens are issued and signed by the API; the client cannot choose its own id.
+    session_response = httpx.post(url=f"{api_base_url}/session", headers=api_headers)
+    session_response.raise_for_status()
+    session_id = session_response.json()["session_id"]
     st.session_state['session_id'] = session_id
 # agent: Smart_Agent = SmartAgentFactory.create_smart_agent(fs=fs, settings=settings, session_id=session_id)
-remoteAgent = RemoteRunnable(f"http://{settings.api_host}:{settings.api_port}/deepRAG")
+remoteAgent = RemoteRunnable(f"{api_base_url}/deepRAG", headers=api_headers)
 st.set_page_config(
     layout="wide", page_title="Smart Research Copilot Demo Application with Multi-Modal AI", page_icon="🧠")
 style: LiteralString = f"""

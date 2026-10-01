@@ -1,3 +1,4 @@
+import os
 import pytest
 from typing import Any, List
 from langserve.client import RemoteRunnable
@@ -5,7 +6,7 @@ from api import Server
 
 def test_vectorRAG_api_happy_path():
 
-    client = RemoteRunnable(url="http://localhost:8000/vectorRAG")
+    client = RemoteRunnable(url="http://localhost:8000/vectorRAG", headers={"X-API-Key": os.environ.get("API_KEY", "")})
     response: List[Any] = client.invoke(input="What is a vector?")
     assert response is not None
 

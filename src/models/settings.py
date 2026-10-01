@@ -24,3 +24,5 @@ class Settings(BaseSettings):
     app_port: int = Field(validation_alias='APP_PORT', default='8000')
     app_host: str = Field(validation_alias='APP_HOST', default='localhost')
     api_host: str = Field(validation_alias='API_HOST', default='localhost')
+    api_key: str = Field(validation_alias='API_KEY', min_length=16)
+    session_secret: str = Field(validation_alias='SESSION_SECRET', min_length=32)

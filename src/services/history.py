@@ -1,35 +1,33 @@
-import base64
-import pickle
-from distributedcache import CacheProtocol
+from distributedcache import CacheProtocol, serialize_history, deserialize_history, history_cache_key
 
 class History:
     """History class"""
 
     def __init__(self, session_id: str, cache: CacheProtocol) -> None:
         """Constructor for History"""
-        self.__session_id: str = session_id
+        self.__cache_key: str = history_cache_key(session_id)
         self.__cache: CacheProtocol = cache
-        cache_history = self.__cache.get(name=self.__session_id)
+        cache_history = self.__cache.get(name=self.__cache_key)
 
         if cache_history is None:
             return
         
-        self.history = pickle.loads(base64.b64decode(s=cache_history))
+        self.history = deserialize_history(cache_history)
 
 
     def set_history(self, history) -> None:
         """Set the history"""
-        self.__cache.set(name=self.__session_id, value=base64.b64encode(s=pickle.dumps(obj=history)))
+        self.__cache.set(name=self.__cache_key, value=serialize_history(history))
 
     def clean_up_history(self, max_q_with_detail_hist=1, max_q_to_keep=2) -> None:
         """Clean up the history"""
 
-        cache_history = self.__cache.get(name=self.__session_id)
+        cache_history = self.__cache.get(name=self.__cache_key)
 
         if cache_history is None:
             return
         
-        history = pickle.loads(base64.b64decode(s=cache_history))
+        history = deserialize_history(cache_history)
         question_count=0
         removal_indices=[]
 
@@ -57,12 +55,12 @@ class History:
     def reset_history_to_last_question(self) -> None:
         """Reset the history to the last question"""
 
-        cache_history = self.__cache.get(name=self.__session_id)
+        cache_history = self.__cache.get(name=self.__cache_key)
 
         if cache_history is None:
             return
         
-        history = pickle.loads(base64.b64decode(s=cache_history))
+        history = deserialize_history(cache_history)
         
         for i in range(len(history)-1, -1, -1):
             message = dict(history[i])   
