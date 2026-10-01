@@ -6,19 +6,18 @@ from logging import Logger
 from openai import AzureOpenAI
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from distributedcache import CacheProtocol
+from distributedcache import CacheProtocol, serialize_history, deserialize_history, history_cache_key
 from functions import SearchVectorFunction
 from models import AgentConfiguration, agent_configuration_from_dict
 from models import Settings
-import base64
-import pickle
 from agents import Smart_Agent
 from redis.commands.core import BasicKeyCommands
 from redis.typing import KeyT, ResponseT, AbsExpiryT, ExpiryT, EncodableT
 
 class SmartAgentFactory:
     @staticmethod
-    def create_smart_agent(fs: fsspec.AbstractFileSystem, settings: Settings, session_id: str) -> Smart_Agent:
+    def create_smart_agent(fs: fsspec.AbstractFileSystem, settings: Settings, session_id: str | None) -> Smart_Agent:
+        """Create a smart agent. `session_id` must be a server-verified id (see `verify_session_token`)."""
         with fs.open(path=settings.smart_agent_prompt_location, mode="r", encoding="utf-8") as file:
             agent_config_data = yaml.safe_load(stream=file)
             agent_config: AgentConfiguration = agent_configuration_from_dict(data=agent_config_data)
@@ -56,9 +55,8 @@ class SmartAgentFactory:
         )
         init_history=[]
         if session_id:
-
-            raw_hist = redis_client.get(session_id)
-            init_history = pickle.loads(base64.b64decode(s=raw_hist)) if raw_hist else []
+            raw_hist = redis_client.get(history_cache_key(session_id))
+            init_history = deserialize_history(raw_hist)
         return Smart_Agent(
             logger=Logger(name="smart_agent"),
             client=client,
@@ -79,5 +77,4 @@ class SmartAgentFactory:
             decode_responses=True
         )
         history = smart_agent._conversation   
-        redis_client.set(name=session_id, value=base64.b64encode(pickle.dumps(history)))
-        redis_client.expire(name=session_id, time=3600)
+        redis_client.set(name=history_cache_key(session_id), value=serialize_history(history), ex=3600)
