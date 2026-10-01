@@ -31,7 +31,8 @@ def deep_rag_search(input) -> Any | str | None:
     session_id: str | None = verify_session_token(
         token=input.get('session_id'), secret=settings.session_secret)
     if session_id is None:
-        raise PermissionError("Invalid or missing session token; obtain one from POST /session")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Invalid or missing session token; obtain one from POST /session")
     protocol: str = get_protocol(url=settings.smart_agent_prompt_location)
     fs: fsspec.AbstractFileSystem = fsspec.filesystem(protocol=protocol)
     agent: Smart_Agent = SmartAgentFactory.create_smart_agent(
